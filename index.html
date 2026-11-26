@@ -548,6 +548,7 @@ function renderChatList(){
   filtered.forEach(chat => {
     const item = document.createElement("div");
     item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
+    item.onclick = () => openChat(chat.id);
 
     const title = document.createElement("span");
     title.className = "chat-title";
