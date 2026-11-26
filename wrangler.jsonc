@@ -1,0 +1,10 @@
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dripscallion-ai",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-26",
+  "ai": {
+    "binding": "AI"
+  }
+}
