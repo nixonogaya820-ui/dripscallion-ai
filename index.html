@@ -187,24 +187,49 @@ function showPage(page){
  window.scrollTo(0,0);
 }
 
-function sendMessage(){
- const input=document.getElementById('chatInput');
- const messages=document.getElementById('messages');
- const value=input.value.trim();
+ 
+async function sendMessage(){
+ const input = document.getElementById('chatInput');
+ const messages = document.getElementById('messages');
+ const value = input.value.trim();
 
- if(!value)return;
+ if(!value) return;
 
- const message=document.createElement('div');
- message.className='message';
- message.textContent='You: '+value;
+ const message = document.createElement('div');
+ message.className = 'message';
+ message.textContent = 'You: ' + value;
  messages.appendChild(message);
 
- const reply=document.createElement('div');
- reply.className='message';
- reply.textContent='DRIPSCALLION AI: Your message is ready. The AI model API must be connected before I can generate a real AI answer.';
+ const reply = document.createElement('div');
+ reply.className = 'message';
+ reply.textContent = 'DRIPSCALLION AI: Thinking...';
  messages.appendChild(reply);
 
- input.value='';
+ input.value = '';
+
+ try {
+   const response = await fetch('/api/chat', {
+     method: 'POST',
+     headers: {
+       'Content-Type': 'application/json'
+     },
+     body: JSON.stringify({ message: value })
+   });
+
+   const data = await response.json();
+
+   if (!response.ok) {
+     throw new Error(data.error || 'AI request failed');
+   }
+
+   reply.textContent = 'DRIPSCALLION AI: ' +
+     (data.response || 'No response received.');
+
+ } catch(error) {
+   reply.textContent =
+     'DRIPSCALLION AI: Connection error. Please try again.';
+   console.error(error);
+ }
 }
 
 function notConnected(){
