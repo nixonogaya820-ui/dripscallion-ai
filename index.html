@@ -4,237 +4,879 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DRIPSCALLION AI STUDIO</title>
+<title>DRIPSCALLION AI</title>
 
 <style>
 *{box-sizing:border-box}
+
+:root{
+ --bg:#212121;
+ --sidebar:#171717;
+ --panel:#2b2b2b;
+ --border:#383838;
+ --text:#ececec;
+ --muted:#a0a0a0;
+ --accent:#a78bfa;
+ --accent2:#8055e8;
+}
+
 body{
  margin:0;
- font-family:Arial,sans-serif;
- background:#080b16;
- color:white;
+ font-family:Arial,Helvetica,sans-serif;
+ background:var(--bg);
+ color:var(--text);
+ height:100vh;
+ overflow:hidden;
 }
-header{
- display:flex;
- justify-content:space-between;
- align-items:center;
- padding:20px;
- background:#11172a;
- border-bottom:1px solid #28304a;
-}
-.logo{font-size:21px;font-weight:bold;color:#a78bfa}
-nav{display:flex;gap:10px;flex-wrap:wrap}
+
 button{
  cursor:pointer;
  border:0;
- border-radius:9px;
- padding:12px 16px;
- background:#202943;
- color:white;
+ color:var(--text);
+ font-size:14px;
 }
-button:hover,.active{background:#8055e8}
-main{max-width:1000px;margin:auto;padding:35px 20px}
-h1{font-size:36px}
-.hero{text-align:center;padding:35px 0}
-.hero p{color:#aab2c8}
-.tools{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
- gap:18px;
- margin-top:30px;
-}
-.card{
- background:#131b30;
- border:1px solid #283451;
- padding:25px;
- border-radius:15px;
- cursor:pointer;
- transition:.2s;
-}
-.card:hover{border-color:#a78bfa;transform:translateY(-3px)}
-.card h3{color:#c4b5fd}
-.panel{
- display:none;
- background:#11192d;
- padding:25px;
- border-radius:15px;
- margin-top:25px;
-}
-.panel.show{display:block}
-input,textarea{
+
+.app{
+ display:flex;
+ height:100vh;
  width:100%;
- padding:15px;
- border-radius:9px;
- border:1px solid #384361;
- background:#080d1b;
- color:white;
- margin:10px 0;
 }
-textarea{min-height:100px;resize:vertical}
-.primary{background:#8055e8}
-.message{
- background:#202943;
+
+/* SIDEBAR */
+
+.sidebar{
+ width:260px;
+ min-width:260px;
+ background:var(--sidebar);
+ padding:17px 13px;
+ display:flex;
+ flex-direction:column;
+ border-right:1px solid #292929;
+ transition:.25s;
+}
+
+.brand{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:7px 9px 22px;
+ font-size:17px;
+ font-weight:bold;
+ letter-spacing:.5px;
+ color:#c4b5fd;
+}
+
+.new-chat{
+ width:100%;
  padding:13px;
  border-radius:10px;
- margin:10px 0;
  text-align:left;
+ background:#262626;
+ border:1px solid #3a3a3a;
+ margin-bottom:23px;
+}
+
+.new-chat:hover,.side-button:hover{
+ background:#303030;
+}
+
+.side-heading{
+ font-size:12px;
+ color:#858585;
+ padding:0 10px 10px;
+}
+
+.history{
+ overflow-y:auto;
+ flex:1;
+}
+
+.history-item{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:7px;
+ width:100%;
+ padding:11px 10px;
+ border-radius:8px;
+ background:transparent;
+ text-align:left;
+ color:#c9c9c9;
+ margin-bottom:3px;
+ overflow:hidden;
+}
+
+.history-item:hover,.history-item.selected{
+ background:#292929;
+}
+
+.history-title{
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+
+.profile{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ border-top:1px solid #303030;
+ padding:15px 8px 4px;
+}
+
+.avatar{
+ width:34px;
+ height:34px;
+ border-radius:50%;
+ display:grid;
+ place-items:center;
+ background:#8055e8;
+ font-weight:bold;
+}
+
+.profile small{
+ color:var(--muted);
+ display:block;
+ margin-top:4px;
+}
+
+/* MAIN */
+
+.main{
+ flex:1;
+ min-width:0;
+ display:flex;
+ flex-direction:column;
+ position:relative;
+}
+
+.topbar{
+ height:60px;
+ padding:0 22px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ border-bottom:1px solid #303030;
+}
+
+.top-left{
+ display:flex;
+ align-items:center;
+ gap:13px;
+}
+
+.menu-button{
+ background:transparent;
+ font-size:21px;
+ padding:7px;
+}
+
+.top-title{
+ font-size:15px;
+ font-weight:bold;
+}
+
+.top-right{
+ color:var(--muted);
+ font-size:12px;
+}
+
+.pages{
+ display:none;
+ flex:1;
+ overflow-y:auto;
+}
+
+.pages.active{
+ display:block;
+}
+
+/* CHAT */
+
+.chat-page{
+ flex:1;
+ display:flex;
+ flex-direction:column;
+ min-height:0;
+}
+
+.chat-content{
+ flex:1;
+ overflow-y:auto;
+ padding:30px 18px 20px;
+}
+
+.messages{
+ width:100%;
+ max-width:790px;
+ margin:auto;
+ display:flex;
+ flex-direction:column;
+ gap:22px;
+}
+
+.welcome{
+ margin:auto;
+ text-align:center;
+ padding:80px 15px 30px;
+}
+
+.welcome h1{
+ font-size:30px;
+ margin-bottom:12px;
+}
+
+.welcome p{
+ color:var(--muted);
+ font-size:15px;
+}
+
+.message-row{
+ display:flex;
+ flex-direction:column;
+ gap:7px;
+ animation:appear .2s ease;
+}
+
+@keyframes appear{
+ from{opacity:0;transform:translateY(5px)}
+ to{opacity:1;transform:translateY(0)}
+}
+
+.message-label{
+ font-size:12px;
+ color:#a6a6a6;
+ font-weight:bold;
+}
+
+.user-message{
+ align-self:flex-end;
+ max-width:82%;
+ background:#303030;
+ padding:13px 17px;
+ border-radius:19px;
+ border-bottom-right-radius:5px;
+ line-height:1.6;
+ overflow-wrap:anywhere;
+ white-space:pre-wrap;
+}
+
+.ai-message{
+ align-self:flex-start;
+ max-width:100%;
+ line-height:1.75;
+ white-space:pre-wrap;
  overflow-wrap:anywhere;
 }
-.status{color:#fbbf24;font-size:13px}
-footer{text-align:center;padding:30px;color:#8992aa}
+
+.ai-message strong{
+ color:#c4b5fd;
+}
+
+.thinking{
+ color:var(--muted);
+ font-style:italic;
+}
+
+.composer-area{
+ padding:12px 18px 20px;
+}
+
+.composer{
+ max-width:790px;
+ margin:auto;
+ background:#303030;
+ border:1px solid #444;
+ border-radius:22px;
+ padding:10px 13px;
+ display:flex;
+ align-items:flex-end;
+ gap:10px;
+}
+
+.composer:focus-within{
+ border-color:#777;
+}
+
+.composer textarea{
+ flex:1;
+ min-width:0;
+ background:transparent;
+ border:0;
+ outline:0;
+ resize:none;
+ color:white;
+ font-family:inherit;
+ font-size:15px;
+ line-height:1.5;
+ min-height:28px;
+ max-height:150px;
+ padding:5px 3px;
+}
+
+.composer textarea::placeholder{
+ color:#999;
+}
+
+.send-button{
+ width:38px;
+ height:38px;
+ min-width:38px;
+ border-radius:50%;
+ background:#ececec;
+ color:#171717;
+ font-size:19px;
+ font-weight:bold;
+}
+
+.send-button:hover{
+ background:#c4b5fd;
+}
+
+.send-button:disabled{
+ opacity:.4;
+ cursor:not-allowed;
+}
+
+.disclaimer{
+ text-align:center;
+ font-size:11px;
+ color:#777;
+ margin-top:10px;
+}
+
+/* HOME AND TOOLS */
+
+.tool-page{
+ max-width:900px;
+ margin:50px auto;
+ padding:20px;
+}
+
+.tool-page h1{
+ font-size:32px;
+}
+
+.tool-page p{
+ color:var(--muted);
+ line-height:1.6;
+}
+
+.tool-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+ gap:15px;
+ margin-top:30px;
+}
+
+.tool-card{
+ background:#292929;
+ border:1px solid #3a3a3a;
+ border-radius:15px;
+ padding:22px;
+ cursor:pointer;
+}
+
+.tool-card:hover{
+ border-color:var(--accent);
+ transform:translateY(-2px);
+}
+
+.tool-card h3{
+ color:#c4b5fd;
+}
+
+.tool-icon{
+ font-size:28px;
+}
+
+.tool-textarea{
+ width:100%;
+ min-height:120px;
+ padding:15px;
+ margin:15px 0;
+ background:#303030;
+ color:white;
+ border:1px solid #444;
+ border-radius:12px;
+ font-family:inherit;
+ font-size:15px;
+}
+
+.primary{
+ background:var(--accent2);
+ padding:12px 19px;
+ border-radius:10px;
+}
+
+.primary:hover{
+ background:#966ef0;
+}
+
+.status{
+ color:#fbbf24!important;
+ font-size:13px;
+}
+
+/* MOBILE */
+
+@media(max-width:700px){
+ .sidebar{
+  position:absolute;
+  z-index:10;
+  left:-270px;
+  top:0;
+  bottom:0;
+  box-shadow:5px 0 25px #0005;
+ }
+
+ .sidebar.open{
+  left:0;
+ }
+
+ .welcome h1{
+  font-size:25px;
+ }
+
+ .user-message{
+  max-width:90%;
+ }
+
+ .topbar{
+  padding:0 13px;
+ }
+
+ .chat-content{
+  padding:20px 13px;
+ }
+
+ .composer-area{
+  padding:10px 12px 15px;
+ }
+
+ .tool-page{
+  margin:25px auto;
+ }
+}
+
 </style>
 </head>
 
 <body>
 
-<header>
- <div class="logo">DRIPSCALLION AI</div>
- <nav>
-  <button onclick="showPage('home')">Home</button>
-  <button onclick="showPage('chat')">AI Chat</button>
-  <button onclick="showPage('image')">Images</button>
-  <button onclick="showPage('video')">Video</button>
-  <button onclick="showPage('voice')">Voice</button>
- </nav>
-</header>
+<div class="app">
 
-<main>
+<!-- SIDEBAR -->
 
-<section id="home" class="panel show">
- <div class="hero">
-  <h1>Welcome to DRIPSCALLION AI</h1>
-  <p>Your AI. Your Creativity. Your Future.</p>
-  <button class="primary" onclick="showPage('chat')">
-   Start Creating
-  </button>
+<aside class="sidebar" id="sidebar">
+
+ <div class="brand">
+  <span>DRIPSCALLION AI</span>
  </div>
 
- <div class="tools">
-  <div class="card" onclick="showPage('chat')">
-   <h2>💬</h2>
-   <h3>AI Chat</h3>
-   <p>Chat with artificial intelligence.</p>
-  </div>
+ <button class="new-chat" onclick="newChat()">
+  ＋ New chat
+ </button>
 
-  <div class="card" onclick="showPage('image')">
-   <h2>🎨</h2>
-   <h3>AI Image</h3>
-   <p>Create images from text prompts.</p>
-  </div>
+ <div class="side-heading">Recent conversations</div>
 
-  <div class="card" onclick="showPage('video')">
-   <h2>🎬</h2>
-   <h3>AI Video</h3>
-   <p>Explore text and image to video creation.</p>
-  </div>
+ <div class="history" id="history"></div>
 
-  <div class="card" onclick="showPage('voice')">
-   <h2>🎙️</h2>
-   <h3>AI Voice</h3>
-   <p>Explore AI voice generation.</p>
+ <div class="profile">
+  <div class="avatar">D</div>
+  <div>
+   <strong>Drips</strong>
+   <small>DRIPSCALLION AI</small>
   </div>
  </div>
-</section>
 
-<section id="chat" class="panel">
- <h1>💬 AI Chat</h1>
- <p>Welcome to DRIPSCALLION AI Chat.</p>
- <div id="messages">
-  <div class="message">Hello! Welcome to DRIPSCALLION AI.</div>
- </div>
- <textarea id="chatInput" placeholder="Ask me anything..."></textarea>
- <button class="primary" onclick="sendMessage()">Send Message</button>
- <p class="status">AI model connection: Not configured yet.</p>
-</section>
+</aside>
 
-<section id="image" class="panel">
- <h1>🎨 AI Image Studio</h1>
- <p>Describe the image you want to create.</p>
- <textarea id="imagePrompt" placeholder="Describe your image..."></textarea>
- <button class="primary" onclick="notConnected()">Generate Image</button>
- <p class="status">Image generation engine: Awaiting connection.</p>
-</section>
+<!-- MAIN CONTENT -->
 
-<section id="video" class="panel">
- <h1>🎬 AI Video Studio</h1>
- <p>Turn your creative ideas into videos.</p>
- <textarea id="videoPrompt" placeholder="Describe your video scene..."></textarea>
- <button class="primary" onclick="notConnected()">Generate Video</button>
- <p class="status">Video generation engine: Awaiting connection.</p>
-</section>
+<div class="main">
 
-<section id="voice" class="panel">
- <h1>🎙️ AI Voice Studio</h1>
- <p>Prepare your text for AI voice generation.</p>
- <textarea id="voiceText" placeholder="Write text for voice generation..."></textarea>
- <button class="primary" onclick="notConnected()">Generate Voice</button>
- <p class="status">Voice generation engine: Awaiting connection.</p>
-</section>
+ <header class="topbar">
 
-</main>
+  <div class="top-left">
+   <button class="menu-button" onclick="toggleSidebar()">☰</button>
+   <div class="top-title" id="topTitle">DRIPSCALLION AI</div>
+  </div>
 
-<footer>
- DRIPSCALLION AI STUDIO © 2026
- <p>Built for creativity and innovation.</p>
-</footer>
+  <div class="top-right">AI STUDIO</div>
+
+ </header>
+
+ <!-- CHAT PAGE -->
+
+ <section class="chat-page pages active" id="chat">
+
+  <div class="chat-content" id="chatContent">
+
+   <div class="welcome" id="welcome">
+    <h1>Hello, Drips.</h1>
+    <p>What would you like to explore today?</p>
+   </div>
+
+   <div class="messages" id="messages"></div>
+
+  </div>
+
+  <div class="composer-area">
+
+   <div class="composer">
+
+    <textarea
+     id="chatInput"
+     rows="1"
+     placeholder="Message DRIPSCALLION AI..."
+     onkeydown="handleEnter(event)"
+     oninput="resizeInput(this)"
+    ></textarea>
+
+    <button
+     class="send-button"
+     id="sendButton"
+     onclick="sendMessage()"
+     title="Send message"
+    >↑</button>
+
+   </div>
+
+   <div class="disclaimer">
+    DRIPSCALLION AI can make mistakes. Check important information.
+   </div>
+
+  </div>
+
+ </section>
+
+ <!-- HOME PAGE -->
+
+ <section class="pages" id="home">
+
+  <div class="tool-page">
+   <h1>Welcome to DRIPSCALLION AI</h1>
+   <p>Your AI. Your Creativity. Your Future.</p>
+
+   <button class="primary" onclick="showPage('chat')">
+    Start chatting
+   </button>
+
+   <div class="tool-grid">
+
+    <div class="tool-card" onclick="showPage('chat')">
+     <div class="tool-icon">💬</div>
+     <h3>AI Chat</h3>
+     <p>Ask questions and explore ideas.</p>
+    </div>
+
+    <div class="tool-card" onclick="showPage('image')">
+     <div class="tool-icon">🎨</div>
+     <h3>AI Images</h3>
+     <p>Create images from text prompts.</p>
+    </div>
+
+    <div class="tool-card" onclick="showPage('video')">
+     <div class="tool-icon">🎬</div>
+     <h3>AI Video</h3>
+     <p>Explore AI video creation.</p>
+    </div>
+
+    <div class="tool-card" onclick="showPage('voice')">
+     <div class="tool-icon">🎙️</div>
+     <h3>AI Voice</h3>
+     <p>Explore AI voice tools.</p>
+    </div>
+
+   </div>
+  </div>
+
+ </section>
+
+ <!-- IMAGE PAGE -->
+
+ <section class="pages" id="image">
+  <div class="tool-page">
+   <h1>🎨 AI Image Studio</h1>
+   <p>Describe the image you want to create.</p>
+   <textarea class="tool-textarea" placeholder="Describe your image..."></textarea>
+   <button class="primary" onclick="notConnected('Image generation')">Generate image</button>
+   <p class="status">Image generation engine: Awaiting integration.</p>
+  </div>
+ </section>
+
+ <!-- VIDEO PAGE -->
+
+ <section class="pages" id="video">
+  <div class="tool-page">
+   <h1>🎬 AI Video Studio</h1>
+   <p>Bring your creative ideas to life.</p>
+   <textarea class="tool-textarea" placeholder="Describe your video scene..."></textarea>
+   <button class="primary" onclick="notConnected('Video generation')">Generate video</button>
+   <p class="status">Video generation engine: Awaiting integration.</p>
+  </div>
+ </section>
+
+ <!-- VOICE PAGE -->
+
+ <section class="pages" id="voice">
+  <div class="tool-page">
+   <h1>🎙️ AI Voice Studio</h1>
+   <p>Prepare your text for AI voice generation.</p>
+   <textarea class="tool-textarea" placeholder="Write your text..."></textarea>
+   <button class="primary" onclick="notConnected('Voice generation')">Generate voice</button>
+   <p class="status">Voice generation engine: Awaiting integration.</p>
+  </div>
+ </section>
+
+</div>
+</div>
 
 <script>
+
+/* PAGE NAVIGATION */
+
 function showPage(page){
- document.querySelectorAll('.panel').forEach(
-  p=>p.classList.remove('show')
- );
- document.getElementById(page).classList.add('show');
- window.scrollTo(0,0);
+
+ document.querySelectorAll('.pages').forEach(p=>{
+  p.classList.remove('active');
+ });
+
+ document.getElementById(page).classList.add('active');
+
+ const titles={
+  home:"Home",
+  chat:"DRIPSCALLION AI",
+  image:"AI Image Studio",
+  video:"AI Video Studio",
+  voice:"AI Voice Studio"
+ };
+
+ document.getElementById("topTitle").textContent=titles[page] || "DRIPSCALLION AI";
+
+ document.getElementById("sidebar").classList.remove("open");
 }
 
- 
+/* SIDEBAR */
+
+function toggleSidebar(){
+ document.getElementById("sidebar").classList.toggle("open");
+}
+
+/* CONVERSATIONS */
+
+let conversations=[];
+let currentConversation=null;
+
+function newChat(){
+
+ currentConversation={
+  id:Date.now(),
+  title:"New conversation",
+  messages:[]
+ };
+
+ conversations.unshift(currentConversation);
+
+ document.getElementById("messages").innerHTML="";
+ document.getElementById("welcome").style.display="block";
+
+ renderHistory();
+ showPage("chat");
+}
+
+function renderHistory(){
+
+ const history=document.getElementById("history");
+ history.innerHTML="";
+
+ conversations.forEach(conversation=>{
+
+  const button=document.createElement("button");
+  button.className="history-item";
+
+  if(currentConversation && conversation.id===currentConversation.id){
+   button.classList.add("selected");
+  }
+
+  const title=document.createElement("span");
+  title.className="history-title";
+  title.textContent=conversation.title;
+
+  button.appendChild(title);
+
+  button.onclick=()=>openConversation(conversation.id);
+
+  history.appendChild(button);
+
+ });
+
+}
+
+function openConversation(id){
+
+ currentConversation=conversations.find(c=>c.id===id);
+
+ if(!currentConversation)return;
+
+ document.getElementById("messages").innerHTML="";
+
+ document.getElementById("welcome").style.display=
+  currentConversation.messages.length ? "none":"block";
+
+ currentConversation.messages.forEach(msg=>{
+  addMessage(msg.role,msg.content);
+ });
+
+ renderHistory();
+ showPage("chat");
+}
+
+function addMessage(role,content){
+
+ const messages=document.getElementById("messages");
+
+ const row=document.createElement("div");
+ row.className="message-row";
+
+ const label=document.createElement("div");
+ label.className="message-label";
+ label.textContent=role==="user"?"You":"DRIPSCALLION AI";
+
+ const bubble=document.createElement("div");
+ bubble.className=role==="user"?"user-message":"ai-message";
+ bubble.textContent=content;
+
+ row.appendChild(label);
+ row.appendChild(bubble);
+
+ messages.appendChild(row);
+
+ document.getElementById("chatContent").scrollTop=
+  document.getElementById("chatContent").scrollHeight;
+
+ return bubble;
+}
+
+/* SEND MESSAGE */
+
 async function sendMessage(){
- const input = document.getElementById('chatInput');
- const messages = document.getElementById('messages');
- const value = input.value.trim();
 
- if(!value) return;
+ const input=document.getElementById("chatInput");
+ const sendButton=document.getElementById("sendButton");
 
- const message = document.createElement('div');
- message.className = 'message';
- message.textContent = 'You: ' + value;
- messages.appendChild(message);
+ const value=input.value.trim();
 
- const reply = document.createElement('div');
- reply.className = 'message';
- reply.textContent = 'DRIPSCALLION AI: Thinking...';
- messages.appendChild(reply);
+ if(!value || sendButton.disabled)return;
 
- input.value = '';
-
- try {
-   const response = await fetch('/api/chat', {
-     method: 'POST',
-     headers: {
-       'Content-Type': 'application/json'
-     },
-     body: JSON.stringify({ message: value })
-   });
-
-   const data = await response.json();
-
-   if (!response.ok) {
-     throw new Error(data.error || 'AI request failed');
-   }
-
-   reply.textContent = 'DRIPSCALLION AI: ' +
-     (data.response || 'No response received.');
-
- } catch(error) {
-   reply.textContent =
-     'DRIPSCALLION AI: Connection error. Please try again.';
-   console.error(error);
+ if(!currentConversation){
+  currentConversation={
+   id:Date.now(),
+   title:value.slice(0,35),
+   messages:[]
+  };
+  conversations.unshift(currentConversation);
  }
+
+ document.getElementById("welcome").style.display="none";
+
+ currentConversation.messages.push({
+  role:"user",
+  content:value
+ });
+
+ if(currentConversation.messages.length===1){
+  currentConversation.title=value.slice(0,35);
+ }
+
+ addMessage("user",value);
+
+ input.value="";
+ input.style.height="auto";
+
+ const reply=addMessage("assistant","Thinking...");
+
+ reply.classList.add("thinking");
+ sendButton.disabled=true;
+
+ renderHistory();
+
+ try{
+
+  const response=await fetch("/api/chat",{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json"
+   },
+   body:JSON.stringify({
+    message:value
+   })
+  });
+
+  const data=await response.json();
+
+  if(!response.ok){
+   throw new Error(data.error || "AI request failed");
+  }
+
+  const answer=data.response || "No response received.";
+
+  reply.textContent=answer;
+  reply.classList.remove("thinking");
+
+  currentConversation.messages.push({
+   role:"assistant",
+   content:answer
+  });
+
+ }catch(error){
+
+  reply.textContent="Connection error. Please try again.";
+  reply.classList.remove("thinking");
+
+  console.error(error);
+
+ }finally{
+
+  sendButton.disabled=false;
+  input.focus();
+  renderHistory();
+
+ }
+
 }
 
-function notConnected(){
- alert('This AI engine is not connected yet. API integration is our next development step.');
+/* KEYBOARD */
+
+function handleEnter(event){
+
+ if(event.key==="Enter" && !event.shiftKey){
+  event.preventDefault();
+  sendMessage();
+ }
+
 }
+
+function resizeInput(element){
+
+ element.style.height="auto";
+ element.style.height=Math.min(element.scrollHeight,150)+"px";
+
+}
+
+/* OTHER TOOLS */
+
+function notConnected(feature){
+
+ alert(feature+" is not connected yet. We will integrate it in a later development step.");
+
+}
+
+/* START */
+
+newChat();
+
 </script>
 
 </body>
