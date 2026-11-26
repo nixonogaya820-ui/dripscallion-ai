@@ -1,10 +1,41 @@
 
+const CHAT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
+const SPEECH_MODEL = "@cf/openai/whisper-large-v3-turbo";
+const VOICE_MODEL = "@cf/deepgram/aura-2-en";
+
+const SYSTEM_PROMPT = `
+You are DRIPSCALLION AI, an intelligent, friendly and natural AI assistant.
+
+Your founder is Job Muuo, known as Drips, from Machakos, Kenya.
+Your tagline is "FROM MACHAKOS TO THE WORLD."
+
+The founder created the DRIPSCALLION AI platform, not the underlying third-party AI models.
+
+Understand and naturally respond in English, Kiswahili and Kenyan Sheng.
+Mirror the user's language and switch whenever they do.
+
+Be conversational, helpful, respectful and accurate.
+Keep simple answers concise and explain difficult subjects clearly.
+Help with education, coding, creativity, research and everyday tasks.
+Never invent facts or claim to have performed an action that did not happen.
+`;
+
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    const origin = request.headers.get("Origin") || "";
+
+    const allowedOrigin =
+      origin && new URL(origin).host === url.host
+        ? origin
+        : url.origin;
+
     const cors = {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": allowedOrigin,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Vary": "Origin"
     };
 
     const respond = (data, status = 200) =>
@@ -20,259 +51,272 @@ export default {
       return new Response(null, { headers: cors });
     }
 
-    const url = new URL(request.url);
-
     if (url.pathname === "/") {
       return new Response("DRIPSCALLION AI is online!", {
         headers: cors
       });
     }
 
-    if (url.pathname !== "/api/chat") {
-      return respond({ error: "Route not found" }, 404);
+    if (url.pathname === "/api/health") {
+      return respond({
+        online: true,
+        assistant: "DRIPSCALLION AI",
+        available: [
+          "chat",
+          "image-generation",
+          "image-understanding",
+          "video-frame-analysis",
+          "speech-to-text",
+          "text-to-speech"
+        ],
+        integrationsNeeded: [
+          "video-generation",
+          "full-realtime-voice",
+          "image-editing"
+        ]
+      });
+    }
+
+    if (!url.pathname.startsWith("/api/")) {
+      return respond({ error: "Route not found." }, 404);
     }
 
     if (request.method !== "POST") {
-      return respond({ error: "Method not allowed" }, 405);
+      return respond({ error: "Method not allowed." }, 405);
+    }
+
+    if (!env.AI) {
+      return respond({
+        error: "Cloudflare AI binding is not configured."
+      }, 500);
     }
 
     try {
-      if (!env.AI) {
-        throw new Error("AI binding is not configured.");
-      }
-
       const body = await request.json();
-      const message = body.message;
 
-      if (typeof message !== "string" || !message.trim()) {
-        return respond({
-          error: "Please enter a message."
-        }, 400);
-      }
+      // 1. GENERAL CHAT
+      if (url.pathname === "/api/chat") {
+        const message = body.message;
 
-      const systemPrompt = `
-You are DRIPSCALLION AI, an intelligent and conversational AI assistant.
+        if (typeof message !== "string" || !message.trim()) {
+          return respond({ error: "Please enter a message." }, 400);
+        }
 
-==================================================
-1. IDENTITY
-==================================================
+        if (message.length > 50000) {
+          return respond({ error: "Message is too long." }, 413);
+        }
 
-Your official name is DRIPSCALLION AI.
-You are an independent AI platform with your own identity.
-Never identify yourself as ChatGPT, OpenAI, or another assistant.
-
-==================================================
-2. FOUNDER AND ORIGIN
-==================================================
-
-Your founder and creator is Job Muuo, popularly known as Drips.
-
-Founder information:
-- Full name: Job Muuo
-- Nickname: Drips
-- Nationality: Kenyan
-- Origin: Machakos County, Kenya
-- Journey: Born in Machakos, moved to Makueni for studies,
-  and later returned to Machakos.
-- Role: Founder and creator of DRIPSCALLION AI.
-
-When asked:
-"Who created you?"
-"Who is your founder?"
-"Who made DRIPSCALLION AI?"
-"Who owns the platform?"
-"Nani alikutengeneza?"
-"Drips ni nani?"
-
-Credit Job Muuo, also known as Drips, as the founder
-and creator of the DRIPSCALLION AI platform.
-
-Explain the founder story naturally and accurately.
-Do not invent additional biographical details.
-
-Important distinction:
-Job Muuo created the DRIPSCALLION AI platform.
-Do not claim that he personally created the underlying
-AI base model or owns the infrastructure of third-party
-technology providers.
-
-==================================================
-3. FOUNDER STORY
-==================================================
-
-DRIPSCALLION AI began as an idea from Machakos, Kenya.
-
-Job Muuo, known as Drips, was born in Machakos.
-He later moved to Makueni for his studies before
-returning to his original homeland, Machakos.
-
-After returning, he developed the idea of creating
-an AI platform that could help people, especially
-students, young people, creators and communities.
-
-The goal was to make artificial intelligence more
-accessible and useful for learning, creativity,
-problem-solving and everyday challenges.
-
-The vision is to grow from an idea born in Machakos
-into a platform accessible to people around the world.
-
-Official tagline:
-"FROM MACHAKOS TO THE WORLD."
-
-Philosophy:
-Technology and knowledge should be accessible
-to people from different backgrounds.
-
-==================================================
-4. MISSION
-==================================================
-
-Make artificial intelligence accessible, practical
-and useful to people everywhere.
-
-Give special attention to students, young innovators,
-creators and communities.
-
-==================================================
-5. VISION
-==================================================
-
-Grow DRIPSCALLION AI into a globally accessible
-AI platform that supports knowledge, creativity,
-innovation and technology.
-
-==================================================
-6. LANGUAGE INTELLIGENCE
-==================================================
-
-Automatically identify the language and communication
-style of the user's latest message.
-
-Rules:
-- English input: respond in English.
-- Kiswahili input: respond in Kiswahili.
-- Sheng input: respond naturally in Sheng.
-- Mixed language: mirror the natural mixture.
-- If the user changes language, switch immediately.
-- Never force translations into every response.
-- Never announce the language you detected.
-- Preserve the user's intended meaning and tone.
-
-==================================================
-7. CONVERSATION INTELLIGENCE
-==================================================
-
-Be natural, helpful, respectful and conversational.
-
-Understand follow-up questions using the conversation
-history provided to you.
-
-Do not repeatedly ask for information already supplied.
-Ask one clear question when essential information is missing.
-
-Keep simple answers concise.
-Explain complex subjects clearly and thoroughly.
-
-Avoid robotic expressions and unnecessary introductions.
-
-==================================================
-8. KNOWLEDGE AND SKILLS
-==================================================
-
-Help users with:
-- Education and learning.
-- Research and general knowledge.
-- Programming and software development.
-- Mathematics and logical reasoning.
-- Writing and communication.
-- Creativity and brainstorming.
-- Technology and troubleshooting.
-- Business ideas and planning.
-- Productivity and everyday problem-solving.
-
-Give step-by-step explanations when appropriate.
-
-For coding requests, provide complete and usable code
-when appropriate. Explain where it belongs.
-
-==================================================
-9. ACCURACY AND HONESTY
-==================================================
-
-Never invent facts, sources or results.
-Admit uncertainty when necessary.
-Do not claim to browse the internet unless browsing
-is actually available and has been performed.
-Do not claim to create images, videos or files unless
-those features are connected and have completed the task.
-
-Be transparent about technical limitations,
-service availability and third-party dependencies.
-
-==================================================
-10. PERSONALITY AND BRAND
-==================================================
-
-Represent DRIPSCALLION AI professionally.
-
-Be intelligent, creative, friendly and approachable.
-Respect people from all backgrounds.
-Support curiosity, education and innovation.
-
-Do not pretend to be human.
-Do not claim capabilities that are not implemented.
-
-Remember the philosophy:
-
-"Built with vision. Driven by innovation.
-Created by Job Muuo (Drips)."
-
-==================================================
-END OF SYSTEM INSTRUCTIONS
-==================================================
-`;
-
-      const result = await env.AI.run(
-        "@cf/google/gemma-4-26b-a4b-it",
-        {
+        const result = await env.AI.run(CHAT_MODEL, {
           messages: [
-            {
-              role: "system",
-              content: systemPrompt
-            },
-            {
-              role: "user",
-              content: message.trim()
-            }
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: message.trim() }
           ],
           chat_template_kwargs: {
             enable_thinking: false
           }
+        });
+
+        const answer =
+          result?.choices?.[0]?.message?.content ||
+          result?.response ||
+          result?.text;
+
+        if (!answer) {
+          return respond({ error: "Empty AI response." }, 502);
         }
-      );
 
-      const answer =
-        result?.choices?.[0]?.message?.content ||
-        result?.response ||
-        result?.text;
-
-      if (!answer) {
         return respond({
-          error: "The AI returned an empty response."
-        }, 502);
+          response: answer,
+          assistant: "DRIPSCALLION AI"
+        });
       }
 
-      return respond({
-        response: answer,
-        assistant: "DRIPSCALLION AI"
-      });
+      // 2. IMAGE GENERATION
+      if (url.pathname === "/api/image") {
+        const prompt = body.prompt;
+
+        if (typeof prompt !== "string" || !prompt.trim()) {
+          return respond({ error: "Describe the image you want." }, 400);
+        }
+
+        if (prompt.length > 2000) {
+          return respond({ error: "Prompt is too long." }, 413);
+        }
+
+        const result = await env.AI.run(IMAGE_MODEL, {
+          prompt: prompt.trim(),
+          steps: 4
+        });
+
+        if (!result?.image) {
+          return respond({
+            error: "Image generation returned no image."
+          }, 502);
+        }
+
+        return respond({
+          image: `data:image/jpeg;base64,${result.image}`,
+          assistant: "DRIPSCALLION AI"
+        });
+      }
+
+      // 3. IMAGE UNDERSTANDING AND VIDEO FRAME ANALYSIS
+      if (url.pathname === "/api/vision") {
+        const prompt =
+          typeof body.prompt === "string" && body.prompt.trim()
+            ? body.prompt.trim()
+            : "Describe what you can see.";
+
+        const images = Array.isArray(body.images)
+          ? body.images
+          : body.image
+            ? [body.image]
+            : [];
+
+        if (!images.length) {
+          return respond({ error: "Please attach an image." }, 400);
+        }
+
+        if (images.length > 5) {
+          return respond({
+            error: "Send no more than five images at a time."
+          }, 400);
+        }
+
+        const content = [
+          { type: "text", text: prompt }
+        ];
+
+        for (const image of images) {
+          if (
+            typeof image !== "string" ||
+            !/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(image)
+          ) {
+            return respond({
+              error: "Use JPEG, PNG or WebP images."
+            }, 400);
+          }
+
+          if (image.length > 7 * 1024 * 1024) {
+            return respond({
+              error: "An image is too large."
+            }, 413);
+          }
+
+          content.push({
+            type: "image_url",
+            image_url: { url: image }
+          });
+        }
+
+        const result = await env.AI.run(CHAT_MODEL, {
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content }
+          ],
+          chat_template_kwargs: {
+            enable_thinking: false
+          }
+        });
+
+        const answer =
+          result?.choices?.[0]?.message?.content ||
+          result?.response ||
+          result?.text;
+
+        if (!answer) {
+          return respond({
+            error: "Image analysis returned no answer."
+          }, 502);
+        }
+
+        return respond({
+          response: answer,
+          assistant: "DRIPSCALLION AI"
+        });
+      }
+
+      // 4. SPEECH TO TEXT
+      if (url.pathname === "/api/transcribe") {
+        const audio = body.audio;
+
+        if (typeof audio !== "string" || !audio.trim()) {
+          return respond({ error: "Please provide audio." }, 400);
+        }
+
+        if (audio.length > 10 * 1024 * 1024) {
+          return respond({ error: "Audio file is too large." }, 413);
+        }
+
+        const result = await env.AI.run(SPEECH_MODEL, {
+          audio,
+          task: "transcribe"
+        });
+
+        if (!result?.text) {
+          return respond({
+            error: "Could not transcribe the audio."
+          }, 502);
+        }
+
+        return respond({
+          text: result.text,
+          assistant: "DRIPSCALLION AI"
+        });
+      }
+
+      // 5. TEXT TO SPEECH
+      if (url.pathname === "/api/speak") {
+        const text = body.text;
+
+        if (typeof text !== "string" || !text.trim()) {
+          return respond({ error: "Please provide text." }, 400);
+        }
+
+        if (text.length > 3000) {
+          return respond({ error: "Text is too long." }, 413);
+        }
+
+        const audio = await env.AI.run(VOICE_MODEL, {
+          text: text.trim(),
+          encoding: "mp3",
+          container: "none",
+          speaker: "luna"
+        });
+
+        return new Response(audio, {
+          headers: {
+            ...cors,
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "no-store"
+          }
+        });
+      }
+
+      // 6. VIDEO GENERATION
+      if (url.pathname === "/api/video/generate") {
+        return respond({
+          available: false,
+          error: "A video generation provider must be connected before this feature can work."
+        }, 501);
+      }
+
+      // 7. IMAGE EDITING
+      if (url.pathname === "/api/image/edit") {
+        return respond({
+          available: false,
+          error: "An image editing model has not been connected yet."
+        }, 501);
+      }
+
+      return respond({ error: "Route not found." }, 404);
 
     } catch (error) {
+      console.error("DRIPSCALLION AI:", error);
+
       return respond({
-        error: error.message || "AI service error"
+        error: error?.message || "AI service error. Please try again."
       }, 500);
     }
   }
 };
-
