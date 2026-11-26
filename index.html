@@ -1,60 +1,216 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DRIPSCALLION AI</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #090b14;
-      color: white;
-      text-align: center;
-    }
-    header {
-      padding: 25px;
-      background: #121629;
-    }
-    h1 { color: #a78bfa; }
-    main { padding: 50px 20px; }
-    .tools {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-top: 30px;
-    }
-    .tool {
-      background: #171d32;
-      padding: 25px;
-      border-radius: 15px;
-      width: 180px;
-    }
-    button {
-      background: #8b5cf6;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRIPSCALLION AI STUDIO</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#080b16;
+ color:white;
+}
+header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:20px;
+ background:#11172a;
+ border-bottom:1px solid #28304a;
+}
+.logo{font-size:21px;font-weight:bold;color:#a78bfa}
+nav{display:flex;gap:10px;flex-wrap:wrap}
+button{
+ cursor:pointer;
+ border:0;
+ border-radius:9px;
+ padding:12px 16px;
+ background:#202943;
+ color:white;
+}
+button:hover,.active{background:#8055e8}
+main{max-width:1000px;margin:auto;padding:35px 20px}
+h1{font-size:36px}
+.hero{text-align:center;padding:35px 0}
+.hero p{color:#aab2c8}
+.tools{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+ gap:18px;
+ margin-top:30px;
+}
+.card{
+ background:#131b30;
+ border:1px solid #283451;
+ padding:25px;
+ border-radius:15px;
+ cursor:pointer;
+ transition:.2s;
+}
+.card:hover{border-color:#a78bfa;transform:translateY(-3px)}
+.card h3{color:#c4b5fd}
+.panel{
+ display:none;
+ background:#11192d;
+ padding:25px;
+ border-radius:15px;
+ margin-top:25px;
+}
+.panel.show{display:block}
+input,textarea{
+ width:100%;
+ padding:15px;
+ border-radius:9px;
+ border:1px solid #384361;
+ background:#080d1b;
+ color:white;
+ margin:10px 0;
+}
+textarea{min-height:100px;resize:vertical}
+.primary{background:#8055e8}
+.message{
+ background:#202943;
+ padding:13px;
+ border-radius:10px;
+ margin:10px 0;
+ text-align:left;
+ overflow-wrap:anywhere;
+}
+.status{color:#fbbf24;font-size:13px}
+footer{text-align:center;padding:30px;color:#8992aa}
+</style>
 </head>
+
 <body>
-  <header>
-    <h1>DRIPSCALLION AI</h1>
-    <p>Your AI. Your Platform.</p>
-  </header>
-  <main>
-    <h2>Welcome to DRIPSCALLION AI STUDIO</h2>
-    <p>Your creative AI workspace starts here.</p>
-    <div class="tools">
-      <div class="tool">💬<h3>AI Chat</h3></div>
-      <div class="tool">🎬<h3>AI Video</h3></div>
-      <div class="tool">🖼️<h3>AI Images</h3></div>
-      <div class="tool">🎙️<h3>AI Voice</h3></div>
-    </div>
-  </main>
+
+<header>
+ <div class="logo">DRIPSCALLION AI</div>
+ <nav>
+  <button onclick="showPage('home')">Home</button>
+  <button onclick="showPage('chat')">AI Chat</button>
+  <button onclick="showPage('image')">Images</button>
+  <button onclick="showPage('video')">Video</button>
+  <button onclick="showPage('voice')">Voice</button>
+ </nav>
+</header>
+
+<main>
+
+<section id="home" class="panel show">
+ <div class="hero">
+  <h1>Welcome to DRIPSCALLION AI</h1>
+  <p>Your AI. Your Creativity. Your Future.</p>
+  <button class="primary" onclick="showPage('chat')">
+   Start Creating
+  </button>
+ </div>
+
+ <div class="tools">
+  <div class="card" onclick="showPage('chat')">
+   <h2>💬</h2>
+   <h3>AI Chat</h3>
+   <p>Chat with artificial intelligence.</p>
+  </div>
+
+  <div class="card" onclick="showPage('image')">
+   <h2>🎨</h2>
+   <h3>AI Image</h3>
+   <p>Create images from text prompts.</p>
+  </div>
+
+  <div class="card" onclick="showPage('video')">
+   <h2>🎬</h2>
+   <h3>AI Video</h3>
+   <p>Explore text and image to video creation.</p>
+  </div>
+
+  <div class="card" onclick="showPage('voice')">
+   <h2>🎙️</h2>
+   <h3>AI Voice</h3>
+   <p>Explore AI voice generation.</p>
+  </div>
+ </div>
+</section>
+
+<section id="chat" class="panel">
+ <h1>💬 AI Chat</h1>
+ <p>Welcome to DRIPSCALLION AI Chat.</p>
+ <div id="messages">
+  <div class="message">Hello! Welcome to DRIPSCALLION AI.</div>
+ </div>
+ <textarea id="chatInput" placeholder="Ask me anything..."></textarea>
+ <button class="primary" onclick="sendMessage()">Send Message</button>
+ <p class="status">AI model connection: Not configured yet.</p>
+</section>
+
+<section id="image" class="panel">
+ <h1>🎨 AI Image Studio</h1>
+ <p>Describe the image you want to create.</p>
+ <textarea id="imagePrompt" placeholder="Describe your image..."></textarea>
+ <button class="primary" onclick="notConnected()">Generate Image</button>
+ <p class="status">Image generation engine: Awaiting connection.</p>
+</section>
+
+<section id="video" class="panel">
+ <h1>🎬 AI Video Studio</h1>
+ <p>Turn your creative ideas into videos.</p>
+ <textarea id="videoPrompt" placeholder="Describe your video scene..."></textarea>
+ <button class="primary" onclick="notConnected()">Generate Video</button>
+ <p class="status">Video generation engine: Awaiting connection.</p>
+</section>
+
+<section id="voice" class="panel">
+ <h1>🎙️ AI Voice Studio</h1>
+ <p>Prepare your text for AI voice generation.</p>
+ <textarea id="voiceText" placeholder="Write text for voice generation..."></textarea>
+ <button class="primary" onclick="notConnected()">Generate Voice</button>
+ <p class="status">Voice generation engine: Awaiting connection.</p>
+</section>
+
+</main>
+
+<footer>
+ DRIPSCALLION AI STUDIO © 2026
+ <p>Built for creativity and innovation.</p>
+</footer>
+
+<script>
+function showPage(page){
+ document.querySelectorAll('.panel').forEach(
+  p=>p.classList.remove('show')
+ );
+ document.getElementById(page).classList.add('show');
+ window.scrollTo(0,0);
+}
+
+function sendMessage(){
+ const input=document.getElementById('chatInput');
+ const messages=document.getElementById('messages');
+ const value=input.value.trim();
+
+ if(!value)return;
+
+ const message=document.createElement('div');
+ message.className='message';
+ message.textContent='You: '+value;
+ messages.appendChild(message);
+
+ const reply=document.createElement('div');
+ reply.className='message';
+ reply.textContent='DRIPSCALLION AI: Your message is ready. The AI model API must be connected before I can generate a real AI answer.';
+ messages.appendChild(reply);
+
+ input.value='';
+}
+
+function notConnected(){
+ alert('This AI engine is not connected yet. API integration is our next development step.');
+}
+</script>
+
 </body>
 </html>
