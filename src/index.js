@@ -1,54 +1,46 @@
 
 export default {
   async fetch(request, env) {
-    const corsHeaders = {
+    const cors = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type"
     };
 
-    const jsonResponse = (data, status = 200) => {
-      return new Response(JSON.stringify(data), {
+    const reply = (data, status = 200) =>
+      new Response(JSON.stringify(data), {
         status,
         headers: {
-          ...corsHeaders,
+          ...cors,
           "Content-Type": "application/json"
         }
       });
-    };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders });
+      return new Response(null, { headers: cors });
     }
 
     const url = new URL(request.url);
 
-    if (url.pathname !== "/api/chat") {
-      return new Response("DRIPSCALLION AI Worker is running!", {
-        status: 200,
-        headers: corsHeaders
+    if (url.pathname === "/") {
+      return new Response("DRIPSCALLION AI is online!", {
+        headers: cors
       });
+    }
+
+    if (url.pathname !== "/api/chat") {
+      return reply({ error: "Route not found" }, 404);
     }
 
     if (request.method !== "POST") {
-      return jsonResponse({
-        status: "online",
-        name: "DRIPSCALLION AI"
-      });
+      return reply({ status: "online" });
     }
 
     try {
-      if (!env.AI) {
-        throw new Error("Workers AI binding AI is missing.");
-      }
+      const { message } = await request.json();
 
-      const body = await request.json();
-      const message = body.message;
-
-      if (!message || typeof message !== "string") {
-        return jsonResponse({
-          error: "Please enter a valid message."
-        }, 400);
+      if (typeof message !== "string" || !message.trim()) {
+        return reply({ error: "Please enter a message." }, 400);
       }
 
       const result = await env.AI.run(
@@ -57,24 +49,37 @@ export default {
           messages: [
             {
               role: "system",
-              content: "You are DRIPSCALLION AI, a helpful and friendly AI assistant. Give clear and useful answers."
+              content: "You are DRIPSCALLION AI, an intelligent, friendly and helpful AI assistant. Answer questions clearly. Support English and Swahili. Help with writing, learning, coding, creativity and general knowledge. Never pretend to know something you do not know."
             },
             {
               role: "user",
-              content: message
+              content: message.trim()
             }
-          ]
+          ],
+          chat_template_kwargs: {
+            enable_thinking: false
+          }
         }
       );
 
-      return jsonResponse({
-        response: result.response || "No response received."
-      });
+      const answer =
+        result?.choices?.[0]?.message?.content ||
+        result?.response ||
+        result?.text;
+
+      if (!answer) {
+        return reply({
+          error: "The AI model returned an empty answer."
+        }, 502);
+      }
+
+      return reply({ response: answer });
 
     } catch (error) {
-      return jsonResponse({
-        error: error.message || "AI request failed."
+      return reply({
+        error: error.message || "AI service error"
       }, 500);
     }
   }
 };
+
