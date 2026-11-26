@@ -4,242 +4,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DRIPSCALLION AI</title>
-<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#11172a">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="DRIPSCALLION AI">
+<title>DRIPSCALLION AI</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 
 <style>
-:root{
- --bg:#080b18;--panel:#101429;--panel2:#171c35;
- --border:#282e4b;--purple:#9b7cff;--purple2:#7654d9;
- --text:#f4f2ff;--muted:#969bb5;
+:root {
+  --bg:#0b1020;
+  --panel:#111a30;
+  --panel2:#17233d;
+  --purple:#8b5cf6;
+  --purple2:#a78bfa;
+  --text:#f4f5fb;
+  --muted:#9ba7c0;
+  --border:#263653;
+  --green:#38d996;
 }
-*{box-sizing:border-box}
-body{
- margin:0;background:
- radial-gradient(ellipse at 75% 0%,#24174b 0%,transparent 42%),
- radial-gradient(ellipse at 10% 90%,#171a3a 0%,transparent 40%),
- var(--bg);
- color:var(--text);font-family:Arial,sans-serif;
- height:100vh;overflow:hidden
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+  height:100vh;
+  overflow:hidden;
 }
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.app{height:100vh;display:flex}
-
-/* SIDEBAR */
-.sidebar{
- width:270px;flex-shrink:0;background:rgba(12,15,32,.96);
- border-right:1px solid var(--border);
- display:flex;flex-direction:column;padding:15px;z-index:5
+button,input,textarea,select {font:inherit}
+button {cursor:pointer}
+.app {display:flex;height:100vh;width:100%}
+.sidebar {
+  width:260px;
+  background:#0e172b;
+  border-right:1px solid var(--border);
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  flex-shrink:0;
 }
-.brand{font-size:19px;font-weight:800;padding:10px 5px 22px}
-.brand span{color:var(--purple)}
-.newchat{
- width:100%;padding:12px;border-radius:10px;color:white;
- background:linear-gradient(110deg,#7654d9,#4e397e);
- border:0;text-align:left;margin-bottom:12px
+.brand {display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.logo {
+  width:42px;height:42px;border-radius:14px;
+  background:linear-gradient(135deg,#8b5cf6,#4f46e5);
+  display:grid;place-items:center;font-weight:900;font-size:19px;
 }
-.search{
- width:100%;padding:11px;border-radius:9px;color:white;
- background:#171b30;border:1px solid var(--border);
- outline:none;margin-bottom:15px
+.brand-name {font-size:16px;font-weight:800;letter-spacing:.4px}
+.brand-sub {font-size:10px;color:var(--muted);margin-top:4px}
+.primary,.nav-btn,.small-btn,.send-btn {
+  border:0;border-radius:11px;padding:12px;
+  color:white;background:var(--panel2);
 }
-.section-label{
- color:var(--muted);font-size:11px;
- letter-spacing:1px;padding:4px 5px 10px
+.primary {background:var(--purple);font-weight:700}
+.primary:hover,.send-btn:hover {filter:brightness(1.12)}
+.nav-btn {text-align:left;background:transparent;color:#c6cde0}
+.nav-btn.active,.nav-btn:hover {background:#202c49;color:white}
+.nav-title {font-size:11px;color:var(--muted);margin:8px 0 2px}
+.chat-list {overflow-y:auto;flex:1;min-height:80px}
+.chat-item {
+  padding:10px;border-radius:9px;color:#c8d0e2;
+  font-size:13px;cursor:pointer;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;
 }
-.history{flex:1;min-height:0;overflow-y:auto}
-.chat-row{
- display:flex;align-items:center;gap:5px;
- border-radius:9px;margin-bottom:4px;padding:3px 5px
+.chat-item:hover,.chat-item.active {background:#202c49}
+.sidebar-bottom {border-top:1px solid var(--border);padding-top:12px}
+.account-line {font-size:12px;color:var(--muted);margin:10px 2px}
+.main {flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar {
+  height:64px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;gap:10px;
 }
-.chat-row:hover,.chat-row.active{background:#222641}
-.chat-open{
- min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;
- white-space:nowrap;text-align:left;background:none;border:0;
- padding:9px 5px;color:#e5e2f3;font-size:13px
+.top-title {font-weight:700}
+.top-right {display:flex;gap:8px;align-items:center}
+.status {font-size:11px;color:var(--green)}
+.content {flex:1;overflow-y:auto;padding:24px}
+.page {display:none;max-width:950px;margin:auto}
+.page.active {display:block}
+.welcome {text-align:center;padding:50px 12px 28px}
+.welcome h1 {font-size:32px;margin:10px 0}
+.gradient {
+  background:linear-gradient(90deg,#a78bfa,#60a5fa);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.chat-options{
- color:#aaa;background:none;border:0;padding:7px;border-radius:6px
+.muted {color:var(--muted);font-size:13px;line-height:1.6}
+.messages {max-width:850px;margin:auto}
+.message {display:flex;margin:17px 0;gap:10px;align-items:flex-start}
+.avatar {
+  width:32px;height:32px;border-radius:10px;
+  display:grid;place-items:center;flex-shrink:0;
+  background:#263453;font-size:12px;font-weight:700;
 }
-.chat-options:hover{background:#353958}
-.side-footer{
- border-top:1px solid var(--border);padding:14px 5px 3px;
- color:var(--muted);font-size:12px
+.message.user .avatar {background:#5b43a4}
+.bubble {
+  max-width:calc(100% - 45px);padding:13px 15px;
+  border:1px solid var(--border);border-radius:5px 15px 15px 15px;
+  background:var(--panel);line-height:1.65;
+  font-size:14px;overflow-wrap:anywhere;white-space:pre-wrap;
 }
-
-/* MAIN */
-.main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{
- height:60px;flex-shrink:0;display:flex;align-items:center;
- justify-content:space-between;padding:0 20px;
- border-bottom:1px solid rgba(50,55,88,.65);
- background:rgba(9,12,26,.45);backdrop-filter:blur(12px)
+.message.user .bubble {background:#242449}
+.message-actions {margin-top:8px}
+.message-actions button {
+  border:0;background:transparent;color:var(--muted);
+  font-size:11px;padding:4px 8px;
 }
-.top-left,.top-right{display:flex;align-items:center;gap:10px}
-.icon-btn{
- border:1px solid var(--border);background:#171b30;
- color:#e8e5f5;border-radius:9px;padding:8px 11px
+.composer-wrap {
+  padding:12px 20px 18px;
+  border-top:1px solid var(--border);
+  background:#0d1528;
 }
-.top-title{font-weight:700;font-size:14px}
-.mode{
- background:#171b30;color:white;border:1px solid var(--border);
- padding:9px;border-radius:9px;max-width:165px
+.composer {max-width:850px;margin:auto}
+.composer-box {
+  background:var(--panel);border:1px solid #344362;
+  border-radius:17px;padding:10px;
 }
-.account-btn{
- background:#211b3c;color:#eee;border:1px solid #514078;
- border-radius:9px;padding:9px 11px;max-width:145px;
- overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
- font-size:12px
+#chatInput {
+  width:100%;resize:none;min-height:48px;max-height:160px;
+  border:0;outline:0;background:transparent;color:white;
+  padding:9px;font-size:14px;
 }
-
-/* CHAT AREA */
-.content{flex:1;overflow-y:auto;padding:30px 20px}
-.welcome{max-width:750px;margin:9vh auto 0;text-align:center}
-.welcome h1{font-size:35px;margin:0 0 12px}
-.welcome h1 span{color:var(--purple)}
-.welcome p{color:var(--muted);line-height:1.7}
-.suggestions{
- display:grid;grid-template-columns:repeat(2,1fr);
- gap:12px;margin-top:30px
+.composer-tools {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tool-btn {
+  border:1px solid var(--border);background:#1b2944;
+  color:#dbe3f5;border-radius:9px;padding:8px 11px;font-size:12px;
 }
-.suggestion{
- background:rgba(25,29,54,.8);color:#eee;
- border:1px solid var(--border);border-radius:13px;
- padding:17px;text-align:left;line-height:1.5
+.send-btn {background:var(--purple);margin-left:auto;padding:10px 18px}
+.disclaimer {text-align:center;color:#71809c;font-size:10px;margin-top:9px}
+.grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.card {
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:15px;padding:18px;margin-bottom:16px;
 }
-.suggestion:hover{border-color:var(--purple)}
-.messages{
- max-width:850px;margin:auto;display:flex;
- flex-direction:column;gap:26px
+.card h3 {margin:0 0 9px;font-size:16px}
+.field {
+  width:100%;padding:12px;border-radius:10px;
+  border:1px solid var(--border);background:#0c1528;
+  color:white;outline:none;margin:8px 0;
 }
-.message{display:flex;width:100%;gap:12px;align-items:flex-start}
-.message.user{justify-content:flex-end}
-.message.assistant{justify-content:flex-start}
-.avatar{
- width:32px;height:32px;border-radius:50%;flex-shrink:0;
- display:flex;align-items:center;justify-content:center;
- font-size:10px;font-weight:bold;background:#302653;
- border:1px solid #51407f
+textarea.field {min-height:110px;resize:vertical}
+.action {margin-top:8px}
+.result-img {width:100%;border-radius:12px;margin-top:15px}
+.result-audio {width:100%;margin-top:12px}
+.gallery {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.gallery-item {
+  background:var(--panel);border:1px solid var(--border);
+  padding:9px;border-radius:12px;overflow:hidden;
 }
-.message.user .avatar{background:#343951;border-color:#4c5372}
-.bubble{
- max-width:min(80%,700px);padding:12px 15px;
- line-height:1.75;overflow-wrap:anywhere;
- border-radius:16px;font-size:15px
+.gallery-item img {width:100%;border-radius:8px;display:block}
+.gallery-item p {font-size:11px;color:var(--muted)}
+.file-label {display:inline-block}
+.file-label input {display:none}
+#notice {font-size:12px;color:var(--purple2);margin-top:10px}
+.modal-bg {
+  position:fixed;inset:0;background:#000a;display:none;
+  align-items:center;justify-content:center;padding:15px;z-index:10;
 }
-.user .bubble{
- background:linear-gradient(130deg,#513d83,#392b62);
- border:1px solid #7256b5;border-top-right-radius:4px
+.modal {
+  width:100%;max-width:400px;background:var(--panel);
+  border:1px solid var(--border);border-radius:18px;padding:22px;
 }
-.assistant .bubble{
- background:rgba(20,24,44,.88);
- border:1px solid #303653;border-top-left-radius:4px
-}
-.bubble p{margin:0 0 10px}
-.bubble p:last-child{margin-bottom:0}
-.bubble pre{
- overflow-x:auto;background:#090d1c;padding:13px;
- border-radius:9px;white-space:pre-wrap
-}
-.bubble code{background:#292344;padding:2px 5px;border-radius:4px}
-.bubble ul,.bubble ol{padding-left:23px}
-.msg-actions{display:flex;gap:7px;margin-top:10px}
-.msg-actions button{
- background:transparent;color:#9da2ba;border:1px solid #343a55;
- padding:5px 9px;border-radius:7px;font-size:11px
-}
-.msg-actions button:hover{color:white;border-color:var(--purple)}
-.typing{color:var(--muted);font-size:13px}
-
-/* COMPOSER */
-.composer-area{
- flex-shrink:0;padding:12px 18px 17px;
- background:linear-gradient(transparent,rgba(8,11,24,.9))
-}
-.composer{
- max-width:850px;margin:auto;background:rgba(24,28,51,.96);
- border:1px solid #424365;border-radius:17px;
- display:flex;align-items:flex-end;gap:8px;padding:10px
-}
-.composer:focus-within{border-color:var(--purple)}
-.composer textarea{
- flex:1;min-width:0;resize:none;max-height:160px;min-height:28px;
- background:transparent;border:0;outline:none;color:white;
- padding:9px 4px;line-height:1.6
-}
-.circle{
- width:39px;height:39px;flex-shrink:0;border-radius:50%;
- border:1px solid #414560;background:#272b46;color:white
-}
-.send{background:var(--purple);color:#130d25;border:0;font-weight:bold}
-.note{text-align:center;color:#737991;font-size:11px;margin-top:9px}
-.status,.file-info{max-width:850px;margin:5px auto 0;font-size:12px}
-.status{color:#b6a5ff}
-.file-info{color:#c7b8ff}
-.hidden{display:none!important}
-.empty{color:var(--muted);font-size:13px;padding:12px}
-
-/* ACCOUNT MODAL */
-.overlay{
- position:fixed;inset:0;background:rgba(3,5,15,.78);
- backdrop-filter:blur(8px);z-index:20;
- display:flex;align-items:center;justify-content:center;padding:15px
-}
-.auth-card{
- width:100%;max-width:420px;background:#11162c;
- border:1px solid #343858;border-radius:18px;
- padding:25px;box-shadow:0 20px 70px #0009
-}
-.auth-card h2{margin:0 0 8px;font-size:23px}
-.auth-card p{color:var(--muted);font-size:13px;line-height:1.6}
-.auth-input{
- width:100%;padding:13px;margin:7px 0;
- background:#090e20;border:1px solid #343858;
- border-radius:9px;color:white;outline:none
-}
-.auth-input:focus{border-color:var(--purple)}
-.auth-primary,.auth-secondary,.auth-guest,.auth-logout{
- width:100%;padding:12px;border-radius:9px;margin-top:9px;
- border:0;font-weight:bold
-}
-.auth-primary{background:linear-gradient(110deg,#7654d9,#4e397e);color:white}
-.auth-secondary{background:#252a46;color:white;border:1px solid #414866}
-.auth-guest{background:#171c34;color:#ddd;border:1px solid #363d5d}
-.auth-logout{background:#482533;color:#ffdce5;border:1px solid #744052}
-.auth-links{
- display:flex;justify-content:space-between;gap:10px;margin-top:15px
-}
-.auth-links button{
- background:none;border:0;color:#b9a7ff;font-size:12px;padding:5px
-}
-.auth-message{font-size:12px;color:#c6b8ff;line-height:1.5;margin-top:12px}
-.auth-close{
- float:right;background:none;border:0;color:#aaa;font-size:21px
-}
-.account-email{
- color:#d5c9ff!important;overflow-wrap:anywhere
-}
-
-/* MOBILE */
-@media(max-width:700px){
- .sidebar{
-  position:fixed;top:0;bottom:0;left:-285px;
-  transition:left .2s;width:270px
- }
- .sidebar.open{left:0}
- .topbar{padding:0 10px}
- .content{padding:20px 12px}
- .composer-area{padding:10px}
- .welcome h1{font-size:27px}
- .suggestions{grid-template-columns:1fr}
- .bubble{max-width:88%;font-size:14px}
- .mode{max-width:115px}
- .account-btn{max-width:105px;padding:8px;font-size:11px}
+.modal h2 {margin-top:0}
+.modal input {width:100%;margin:7px 0}
+.modal button {width:100%;margin-top:8px}
+.mobile-menu {display:none}
+@media(max-width:750px) {
+  .sidebar {
+    position:fixed;z-index:5;left:-270px;top:0;bottom:0;
+    transition:left .2s;
+  }
+  .sidebar.open {left:0}
+  .mobile-menu {display:block}
+  .content {padding:14px}
+  .topbar {padding:0 12px}
+  .grid {grid-template-columns:1fr}
+  .gallery {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .welcome {padding-top:30px}
+  .welcome h1 {font-size:25px}
+  .composer-wrap {padding:10px}
 }
 </style>
 </head>
@@ -248,873 +190,1039 @@ button{cursor:pointer}
 <div class="app">
 
 <aside class="sidebar" id="sidebar">
- <div class="brand">DRIPSCALLION <span>AI</span></div>
- <button class="newchat" id="newChat">＋ New chat</button>
- <input class="search" id="search" placeholder="Search chats...">
- <div class="section-label">RECENT CONVERSATIONS</div>
- <div class="history" id="history"></div>
- <div class="side-footer">
-  DRIPSCALLION AI STUDIO<br>
-  <span>From Machakos to the World.</span>
- </div>
+  <div class="brand">
+    <div class="logo">D</div>
+    <div>
+      <div class="brand-name">DRIPSCALLION AI</div>
+      <div class="brand-sub">FROM MACHAKOS TO THE WORLD</div>
+    </div>
+  </div>
+
+  <button class="primary" onclick="newChat()">＋ New Chat</button>
+
+  <div class="nav-title">WORKSPACE</div>
+  <button class="nav-btn active" data-page="chat" onclick="showPage('chat',this)">◈ AI Chat</button>
+  <button class="nav-btn" data-page="image" onclick="showPage('image',this)">✦ Image Generator</button>
+  <button class="nav-btn" data-page="vision" onclick="showPage('vision',this)">◎ Image Understanding</button>
+  <button class="nav-btn" data-page="video" onclick="showPage('video',this)">▷ Video Studio</button>
+  <button class="nav-btn" data-page="voice" onclick="showPage('voice',this)">♫ Voice Studio</button>
+  <button class="nav-btn" data-page="docs" onclick="showPage('docs',this)">▤ Documents</button>
+  <button class="nav-btn" data-page="study" onclick="showPage('study',this)">▧ Study Assistant</button>
+  <button class="nav-btn" data-page="helper" onclick="showPage('helper',this)">☏ Conversation Helper</button>
+  <button class="nav-btn" data-page="creations" onclick="showPage('creations',this)">▣ My Creations</button>
+
+  <div class="nav-title">RECENT CHATS</div>
+  <div class="chat-list" id="chatList"></div>
+
+  <div class="sidebar-bottom">
+    <button class="nav-btn" style="width:100%" onclick="openAccount()">♙ Account / Login</button>
+    <div class="account-line" id="accountStatus">Guest mode</div>
+  </div>
 </aside>
 
 <main class="main">
- <header class="topbar">
-  <div class="top-left">
-   <button class="icon-btn" id="sidebarBtn">☰</button>
-   <div class="top-title">DRIPSCALLION AI</div>
-  </div>
-  <div class="top-right">
-   <select class="mode" id="mode">
-    <option value="general">General AI</option>
-    <option value="study">Study Assistant</option>
-    <option value="conversation">Conversation Helper</option>
-   </select>
-   <button class="account-btn" id="accountBtn">Account</button>
-  </div>
- </header>
+  <header class="topbar">
+    <div class="top-right">
+      <button class="tool-btn mobile-menu" onclick="toggleSidebar()">☰</button>
+      <div class="top-title" id="pageTitle">AI Chat</div>
+    </div>
+    <div class="top-right">
+      <span class="status">● Online</span>
+      <button class="tool-btn" onclick="openAccount()">Account</button>
+    </div>
+  </header>
 
- <section class="content" id="content">
-  <div class="welcome" id="welcome">
-   <h1>What can I help you <span>with?</span></h1>
-   <p>Your assistant for learning, creativity, ideas and everyday challenges.</p>
-   <div class="suggestions">
-    <button class="suggestion" data-mode="study"
-     data-prompt="Teach me a difficult topic in simple language, step by step.">
-     📚 <b>Learn anything</b><br>Understand a topic easily.
-    </button>
-    <button class="suggestion" data-mode="study"
-     data-prompt="Create practice questions for me and explain their answers.">
-     ✍️ <b>Practice questions</b><br>Test your understanding.
-    </button>
-    <button class="suggestion" data-mode="conversation"
-     data-prompt="Help me start a natural and interesting conversation.">
-     💬 <b>Conversation ideas</b><br>Find natural words to say.
-    </button>
-    <button class="suggestion" data-mode="general"
-     data-prompt="Help me think through an idea and develop it step by step.">
-     💡 <b>Explore an idea</b><br>Turn ideas into plans.
-    </button>
-   </div>
-  </div>
-  <div class="messages" id="messages"></div>
- </section>
+  <div class="content">
 
- <section class="composer-area">
-  <div class="composer">
-   <button class="circle" id="attachBtn" title="Attach text file">＋</button>
-   <textarea id="input" rows="1" placeholder="Message DRIPSCALLION AI..."></textarea>
-   <button class="circle send" id="sendBtn" title="Send message">➤</button>
+    <section class="page active" id="page-chat">
+      <div class="welcome" id="welcome">
+        <div class="gradient" style="font-weight:800">YOUR AI. YOUR IDEAS. YOUR WORLD.</div>
+        <h1>Welcome to <span class="gradient">DRIPSCALLION AI</span></h1>
+        <p class="muted">Ask anything. Learn something. Create something amazing.</p>
+      </div>
+      <div class="messages" id="messages"></div>
+    </section>
+
+    <section class="page" id="page-image">
+      <h2>✦ Image Generator</h2>
+      <p class="muted">Turn your imagination into images.</p>
+      <div class="card">
+        <h3>Describe your image</h3>
+        <textarea class="field" id="imagePrompt" placeholder="Example: A cinematic professional photography scene at sunset..."></textarea>
+        <button class="primary action" id="imageButton" onclick="generateImage()">Generate Image</button>
+        <div id="imageResult"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-vision">
+      <h2>◎ Image Understanding</h2>
+      <p class="muted">Upload an image and ask DRIPSCALLION AI about it.</p>
+      <div class="card">
+        <input class="field" type="file" id="visionFiles" accept="image/png,image/jpeg,image/webp" multiple>
+        <textarea class="field" id="visionPrompt" placeholder="What is in this picture? Read the text, explain the scene, or ask a question..."></textarea>
+        <button class="primary action" onclick="analyseImages()">Analyse Image</button>
+        <div id="visionResult"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-video">
+      <h2>▷ Video Studio</h2>
+      <p class="muted">Analyse a video by sampling frames and asking questions about what happens.</p>
+      <div class="card">
+        <h3>Video Understanding</h3>
+        <input class="field" type="file" id="videoFile" accept="video/*">
+        <textarea class="field" id="videoPrompt" placeholder="Describe what happens in this video..."></textarea>
+        <button class="primary action" onclick="analyseVideo()">Analyse Video</button>
+        <div id="videoResult"></div>
+      </div>
+      <div class="card">
+        <h3>Video Generation</h3>
+        <p class="muted">The video-generation provider is not connected to the current backend yet. This feature needs a separate video-generation integration.</p>
+        <input class="field" disabled placeholder="Video generation provider not connected">
+        <button class="tool-btn" disabled>Not available yet</button>
+      </div>
+    </section>
+
+    <section class="page" id="page-voice">
+      <h2>♫ Voice Studio</h2>
+      <p class="muted">Convert speech to text and let DRIPSCALLION AI read text aloud.</p>
+      <div class="card">
+        <h3>Speech to Text</h3>
+        <input class="field" type="file" id="audioFile" accept="audio/*">
+        <button class="primary action" onclick="transcribeAudio()">Transcribe Audio</button>
+        <textarea class="field" id="transcript" placeholder="Your transcription will appear here..."></textarea>
+      </div>
+      <div class="card">
+        <h3>Text to Speech</h3>
+        <textarea class="field" id="speakText" placeholder="Type something for DRIPSCALLION AI to speak..."></textarea>
+        <button class="primary action" onclick="speakText()">Speak Text</button>
+        <div id="speechResult"></div>
+      </div>
+      <div class="card">
+        <h3>Live microphone recording</h3>
+        <p class="muted">Record your voice, transcribe it, then send the text to chat. This is not yet continuous real-time voice conversation.</p>
+        <button class="primary" id="recordButton" onclick="toggleRecording()">Start Recording</button>
+        <div id="recordStatus" class="muted"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-docs">
+      <h2>▤ Documents</h2>
+      <p class="muted">Upload a text-based PDF, Word document or text file to ask questions or create a summary.</p>
+      <div class="card">
+        <input class="field" type="file" id="documentFile" accept=".pdf,.docx,.txt,.md,.csv">
+        <button class="primary action" onclick="readDocument()">Read Document</button>
+        <textarea class="field" id="documentText" placeholder="Extracted document text will appear here..."></textarea>
+        <textarea class="field" id="documentQuestion" placeholder="Summarise this document, explain it, or answer a question..."></textarea>
+        <button class="primary action" onclick="askAboutDocument()">Ask about Document</button>
+        <div id="documentResult"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-study">
+      <h2>▧ Study Assistant</h2>
+      <p class="muted">Get help understanding topics, practising skills and working through school subjects.</p>
+      <div class="card">
+        <select class="field" id="studySubject">
+          <option>General Studies</option>
+          <option>Mathematics</option>
+          <option>English</option>
+          <option>Kiswahili</option>
+          <option>Biology</option>
+          <option>Chemistry</option>
+          <option>Physics</option>
+          <option>Computer Studies</option>
+          <option>History</option>
+          <option>Geography</option>
+        </select>
+        <textarea class="field" id="studyQuestion" placeholder="What would you like to understand?"></textarea>
+        <button class="primary action" onclick="runStudy()">Help Me Learn</button>
+        <div id="studyResult"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-helper">
+      <h2>☏ Conversation Helper</h2>
+      <p class="muted">Get help writing clear, respectful messages for everyday conversations.</p>
+      <div class="card">
+        <select class="field" id="helperStyle">
+          <option>Natural and friendly</option>
+          <option>Professional</option>
+          <option>Short and direct</option>
+          <option>Polite and respectful</option>
+          <option>Casual Kenyan Sheng</option>
+        </select>
+        <textarea class="field" id="helperMessage" placeholder="Paste the message or explain what you want to say..."></textarea>
+        <button class="primary action" onclick="runHelper()">Create Reply</button>
+        <div id="helperResult"></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-creations">
+      <h2>▣ My Creations</h2>
+      <p class="muted">Images generated in this browser are saved here on this device.</p>
+      <div class="gallery" id="gallery"></div>
+      <button class="tool-btn action" onclick="clearCreations()">Clear Gallery</button>
+    </section>
+
   </div>
-  <div class="file-info hidden" id="fileInfo"></div>
-  <div class="status" id="status"></div>
-  <div class="note">DRIPSCALLION AI can make mistakes. Check important information.</div>
- </section>
+
+  <div class="composer-wrap" id="composerWrap">
+    <div class="composer">
+      <div class="composer-box">
+        <textarea id="chatInput" placeholder="Message DRIPSCALLION AI..." rows="2"></textarea>
+        <div class="composer-tools">
+          <label class="tool-btn file-label">＋ Attach
+            <input type="file" id="chatAttachment" accept="image/*,.pdf,.docx,.txt,.md,.csv">
+          </label>
+          <span class="muted" id="attachmentName"></span>
+          <button class="tool-btn" onclick="clearChatInput()">Clear</button>
+          <button class="send-btn" id="sendButton" onclick="sendChat()">Send ↑</button>
+        </div>
+      </div>
+      <div class="disclaimer">DRIPSCALLION AI can make mistakes. Check important information.</div>
+    </div>
+  </div>
 </main>
 </div>
 
-<input type="file" id="fileInput" accept=".txt,.md,.csv,.json" hidden>
-
-<!-- ACCOUNT WINDOW -->
-<div class="overlay hidden" id="authOverlay">
- <div class="auth-card">
-  <button class="auth-close" id="authClose">×</button>
-  <h2 id="authTitle">Welcome to DRIPSCALLION AI</h2>
-  <p id="authDescription">Sign in, create an account, or continue as a guest.</p>
-
-  <div id="authForm">
-   <input class="auth-input" id="authEmail" type="email"
-    placeholder="Email address" autocomplete="email">
-   <input class="auth-input" id="authPassword" type="password"
-    placeholder="Password" autocomplete="current-password">
-   <button class="auth-primary" id="authSubmit">Login</button>
-   <div class="auth-links">
-    <button id="showLogin">Login</button>
-    <button id="showSignup">Create account</button>
-   </div>
-   <button class="auth-guest" id="guestBtn">Continue as Guest</button>
+<div class="modal-bg" id="accountModal">
+  <div class="modal">
+    <h2>DRIPSCALLION AI Account</h2>
+    <p class="muted">Login or create an account to keep your chats synced.</p>
+    <input class="field" id="email" type="email" placeholder="Email address">
+    <input class="field" id="password" type="password" placeholder="Password">
+    <button class="primary" onclick="login()">Login</button>
+    <button class="tool-btn" onclick="signup()">Create Account</button>
+    <button class="tool-btn" onclick="guestMode()">Continue as Guest</button>
+    <button class="tool-btn" onclick="logout()">Logout</button>
+    <button class="tool-btn" onclick="closeAccount()">Close</button>
+    <div id="authMessage" class="muted"></div>
   </div>
-
-  <div id="accountInfo" class="hidden">
-   <p class="account-email" id="accountEmail"></p>
-   <button class="auth-logout" id="logoutBtn">Log out</button>
-  </div>
-
-  <div class="auth-message" id="authMessage"></div>
- </div>
 </div>
 
-<!-- Supabase client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-/* SUPABASE CONNECTION */
 const SUPABASE_URL = "https://ftvprgacnbnvwmyoqbwz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_lQQg4hQqx8-Ix2gV0qaQ4A_ypKVsp7R";
 
 const supabaseClient = window.supabase.createClient(
- SUPABASE_URL,
- SUPABASE_KEY
+  SUPABASE_URL,
+  SUPABASE_KEY
 );
 
-/* APP STATE */
+let currentUser = null;
+let chats = [];
+let currentChatId = null;
+let attachedFile = null;
+let recording = false;
+let mediaRecorder = null;
+let recordedChunks = [];
+let extractedDocument = "";
+
 const $ = id => document.getElementById(id);
 
-let chats = [];
-let activeId = null;
-let attachedText = "";
-let attachedName = "";
-let controller = null;
-let currentUser = null;
-let authMode = "login";
-let cloudSaveQueue = Promise.resolve();
-let accountLoading = false;
-
-/* GUEST STORAGE */
-function loadGuestChats(){
- try{
-  const stored = JSON.parse(localStorage.getItem("dripscallion_chats") || "[]");
-  chats = Array.isArray(stored) ? stored : [];
- }catch(e){
-  chats = [];
- }
+function showNotice(id, message) {
+  const el = $(id);
+  if (el) el.textContent = message;
 }
 
-function save(){
- if(currentUser){
-  saveCloudChats();
-  return;
- }
-
- try{
-  localStorage.setItem("dripscallion_chats",JSON.stringify(chats));
- }catch(e){
-  $("status").textContent="Storage full. Delete some old conversations.";
- }
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
 }
 
-/* ACCOUNT CHAT STORAGE */
-function saveCloudChats(){
- if(!currentUser || !chats.length)return;
-
- const userId = currentUser.id;
- const snapshot = chats.map(chat=>({
-  id:chat.id,
-  user_id:userId,
-  title:chat.title || "New chat",
-  messages:Array.isArray(chat.messages) ? chat.messages : [],
-  created_at:chat.created_at || new Date().toISOString(),
-  updated_at:new Date().toISOString()
- }));
-
- cloudSaveQueue = cloudSaveQueue.then(async()=>{
-  if(!currentUser || currentUser.id !== userId)return;
-
-  const {error} = await supabaseClient
-   .from("chats")
-   .upsert(snapshot,{onConflict:"id"});
-
-  if(error){
-   console.error("Cloud save error:",error);
-   $("status").textContent="Cloud save failed. Check your connection.";
-  }
- }).catch(error=>{
-  console.error(error);
- });
+function newId() {
+  return crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Date.now()) + Math.random();
 }
 
-async function loadAccountChats(user){
- accountLoading = true;
- $("status").textContent="Loading your conversations...";
-
- const {data,error} = await supabaseClient
-  .from("chats")
-  .select("id,title,messages,created_at,updated_at")
-  .eq("user_id",user.id)
-  .order("updated_at",{ascending:false});
-
- accountLoading = false;
-
- if(error){
-  console.error(error);
-  $("status").textContent="Could not load account chats. Please refresh.";
-  chats = [];
-  return;
- }
-
- chats = (data || []).map(row=>({
-  id:row.id,
-  title:row.title || "New chat",
-  messages:Array.isArray(row.messages) ? row.messages : [],
-  created_at:row.created_at,
-  updated:Date.parse(row.updated_at) || Date.now()
- }));
-
- $("status").textContent="";
-}
-
-async function applyAccount(user){
- if(!user)return;
-
- currentUser = user;
- await loadAccountChats(user);
-
- if(chats.length){
-  openChat(chats[0].id);
- }else{
-  newChat();
- }
-
- updateAccountButton();
- closeAuth();
- renderHistory();
-}
-
-function applyGuest(){
- currentUser = null;
- loadGuestChats();
-
- if(chats.length){
-  const latest = [...chats].sort((a,b)=>
-   (b.updated || 0)-(a.updated || 0)
-  )[0];
-  openChat(latest.id);
- }else{
-  newChat();
- }
-
- updateAccountButton();
- renderHistory();
-}
-
-/* ACCOUNT WINDOW */
-function updateAccountButton(){
- if(currentUser){
-  $("accountBtn").textContent =
-   currentUser.email || "My Account";
- }else{
-  $("accountBtn").textContent="Guest · Sign in";
- }
-}
-
-function openAuth(){
- $("authOverlay").classList.remove("hidden");
- $("authMessage").textContent="";
-
- if(currentUser){
-  $("authTitle").textContent="Your account";
-  $("authDescription").textContent="Your DRIPSCALLION AI account is active.";
-  $("authForm").classList.add("hidden");
-  $("accountInfo").classList.remove("hidden");
-  $("accountEmail").textContent=currentUser.email || "";
- }else{
-  $("accountInfo").classList.add("hidden");
-  $("authForm").classList.remove("hidden");
-  setAuthMode(authMode);
- }
-}
-
-function closeAuth(){
- $("authOverlay").classList.add("hidden");
-}
-
-function setAuthMode(mode){
- authMode = mode;
- $("authMessage").textContent="";
- $("authForm").classList.remove("hidden");
- $("accountInfo").classList.add("hidden");
-
- if(mode==="signup"){
-  $("authTitle").textContent="Create your account";
-  $("authDescription").textContent="Create an account to keep your conversations online.";
-  $("authSubmit").textContent="Create account";
-  $("authPassword").autocomplete="new-password";
- }else{
-  $("authTitle").textContent="Welcome back";
-  $("authDescription").textContent="Login to access your saved conversations.";
-  $("authSubmit").textContent="Login";
-  $("authPassword").autocomplete="current-password";
- }
-}
-
-async function submitAuth(){
- const email = $("authEmail").value.trim();
- const password = $("authPassword").value;
-
- if(!email || !password){
-  $("authMessage").textContent="Enter your email and password.";
-  return;
- }
-
- if(password.length < 6){
-  $("authMessage").textContent="Password must be at least 6 characters.";
-  return;
- }
-
- $("authSubmit").disabled = true;
- $("authMessage").textContent="Please wait...";
-
- try{
-  if(authMode==="signup"){
-   const {data,error} = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options:{
-     emailRedirectTo:window.location.origin
-    }
-   });
-
-   if(error)throw error;
-
-   if(data.session && data.user){
-    await applyAccount(data.user);
-    $("authMessage").textContent="Account created successfully.";
-   }else{
-    $("authMessage").textContent=
-     "Account created. Check your email and confirm your address, then come back and log in.";
-   }
-
-  }else{
-   const {data,error} = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-   });
-
-   if(error)throw error;
-
-   if(data.user){
-    await applyAccount(data.user);
-   }
-  }
- }catch(error){
-  console.error(error);
-  $("authMessage").textContent =
-   error.message || "Something went wrong. Please try again.";
- }finally{
-  $("authSubmit").disabled = false;
- }
-}
-
-async function logout(){
- $("logoutBtn").disabled=true;
-
- try{
-  const {error} = await supabaseClient.auth.signOut();
-  if(error)throw error;
-
-  currentUser = null;
-  applyGuest();
-  closeAuth();
-  localStorage.setItem("dripscallion_guest_choice","yes");
- }catch(error){
-  $("authMessage").textContent=error.message || "Could not log out.";
- }finally{
-  $("logoutBtn").disabled=false;
- }
-}
-
-/* CHAT HELPERS */
-function activeChat(){
- return chats.find(c=>c.id===activeId);
-}
-
-function makeId(){
- if(window.crypto && crypto.randomUUID){
-  return crypto.randomUUID();
- }
-
- return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
-  const r=Math.random()*16|0;
-  const v=c==="x"?r:(r&0x3|0x8);
-  return v.toString(16);
- });
-}
-
-function escapeHTML(s){
- return String(s).replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",
-  '"':"&quot;","'":"&#39;"
- }[c]));
-}
-
-function formatText(text){
- let s=escapeHTML(text);
-
- s=s.replace(/```([\s\S]*?)```/g,
-  "<pre><code>$1</code></pre>");
- s=s.replace(/`([^`]+)`/g,"<code>$1</code>");
- s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
- s=s.replace(/\*([^*]+)\*/g,"<em>$1</em>");
- s=s.replace(/^### (.+)$/gm,"<strong>$1</strong>");
- s=s.replace(/^## (.+)$/gm,"<strong>$1</strong>");
- s=s.replace(/^# (.+)$/gm,"<strong>$1</strong>");
- s=s.replace(/^\s*[-*] (.+)$/gm,"• $1");
- s=s.replace(/\n/g,"<br>");
- return s;
-}
-
-/* HISTORY */
-function renderHistory(){
- const term=$("search").value.toLowerCase();
- $("history").innerHTML="";
-
- const filtered=chats.filter(c=>
-  (c.title||"").toLowerCase().includes(term)
- );
-
- if(!filtered.length){
-  $("history").innerHTML='<div class="empty">No conversations found.</div>';
-  return;
- }
-
- filtered.forEach(chat=>{
-  const row=document.createElement("div");
-  row.className="chat-row"+(chat.id===activeId?" active":"");
-
-  const open=document.createElement("button");
-  open.className="chat-open";
-  open.textContent=chat.title||"New chat";
-  open.onclick=()=>openChat(chat.id);
-
-  const options=document.createElement("button");
-  options.className="chat-options";
-  options.textContent="⋯";
-  options.title="Conversation options";
-  options.onclick=()=>chatOptions(chat.id);
-
-  row.append(open,options);
-  $("history").appendChild(row);
- });
-}
-
-async function chatOptions(id){
- const chat=chats.find(c=>c.id===id);
- if(!chat)return;
-
- const action=prompt("Type R to rename or D to delete this conversation.");
- if(!action)return;
-
- if(action.toLowerCase()==="r"){
-  const title=prompt("Enter a new chat name:",chat.title);
-
-  if(title && title.trim()){
-   chat.title=title.trim();
-   chat.updated=Date.now();
-   save();
-   renderHistory();
-  }
- }
-
- if(action.toLowerCase()==="d"){
-  if(confirm("Delete this conversation permanently?")){
-   chats=chats.filter(c=>c.id!==id);
-
-   if(currentUser){
-    const {error}=await supabaseClient
-     .from("chats")
-     .delete()
-     .eq("id",id)
-     .eq("user_id",currentUser.id);
-
-    if(error){
-     $("status").textContent="Could not delete cloud conversation.";
-     console.error(error);
-    }
-   }else{
-    save();
-   }
-
-   if(activeId===id)newChat();
-   else renderHistory();
-  }
- }
-}
-
-/* CREATE AND OPEN CHAT */
-function createChat(){
- const now=new Date().toISOString();
-
- const chat={
-  id:makeId(),
-  title:"New chat",
-  messages:[],
-  created_at:now,
-  updated:Date.now()
- };
-
- chats.unshift(chat);
- activeId=chat.id;
- save();
- return chat;
-}
-
-function newChat(){
- activeId=null;
- $("messages").innerHTML="";
- $("welcome").classList.remove("hidden");
- $("input").value="";
- $("status").textContent="";
- clearAttachment();
- renderHistory();
- $("sidebar").classList.remove("open");
-}
-
-function openChat(id){
- const chat=chats.find(c=>c.id===id);
- if(!chat)return;
-
- activeId=id;
- $("messages").innerHTML="";
- $("welcome").classList.add("hidden");
-
- chat.messages.forEach(m=>renderMessage(m.role,m.text));
- renderHistory();
- $("content").scrollTop=$("content").scrollHeight;
- $("sidebar").classList.remove("open");
-}
-
-/* MESSAGE DISPLAY */
-function renderMessage(role,text){
- $("welcome").classList.add("hidden");
-
- const row=document.createElement("div");
- row.className="message "+role;
-
- const avatar=document.createElement("div");
- avatar.className="avatar";
- avatar.textContent=role==="user"?"YOU":"DS";
-
- const bubble=document.createElement("div");
- bubble.className="bubble";
- bubble.innerHTML=formatText(text);
-
- if(role==="assistant"){
-  const actions=document.createElement("div");
-  actions.className="msg-actions";
-
-  const copy=document.createElement("button");
-  copy.textContent="Copy";
-  copy.onclick=async()=>{
-   try{
-    await navigator.clipboard.writeText(text);
-    copy.textContent="Copied!";
-    setTimeout(()=>copy.textContent="Copy",1200);
-   }catch(e){
-    copy.textContent="Copy unavailable";
-   }
+function showPage(name, button) {
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  $("page-" + name).classList.add("active");
+
+  document.querySelectorAll(".nav-btn[data-page]").forEach(btn => btn.classList.remove("active"));
+  if (button) button.classList.add("active");
+
+  const titles = {
+    chat:"AI Chat",
+    image:"Image Generator",
+    vision:"Image Understanding",
+    video:"Video Studio",
+    voice:"Voice Studio",
+    docs:"Documents",
+    study:"Study Assistant",
+    helper:"Conversation Helper",
+    creations:"My Creations"
   };
 
-  const regenerate=document.createElement("button");
-  regenerate.textContent="Regenerate";
-  regenerate.onclick=regenerateAnswer;
-
-  actions.append(copy,regenerate);
-  bubble.appendChild(actions);
- }
-
- if(role==="user"){
-  row.append(bubble,avatar);
- }else{
-  row.append(avatar,bubble);
- }
-
- $("messages").appendChild(row);
- $("content").scrollTop=$("content").scrollHeight;
+  $("pageTitle").textContent = titles[name] || "DRIPSCALLION AI";
+  $("composerWrap").style.display = name === "chat" ? "block" : "none";
+  $("sidebar").classList.remove("open");
 }
 
-function addMessage(role,text){
- const chat=activeChat()||createChat();
-
- chat.messages.push({role,text});
- chat.updated=Date.now();
-
- if(role==="user"&&chat.title==="New chat"){
-  chat.title=text.slice(0,38)+(text.length>38?"...":"");
- }
-
- save();
- renderMessage(role,text);
- renderHistory();
+function toggleSidebar() {
+  $("sidebar").classList.toggle("open");
 }
 
-/* AI MODES */
-function modeInstruction(){
- const mode=$("mode").value;
-
- if(mode==="study"){
-  return `You are DRIPSCALLION AI Study Assistant.
-Teach all school and academic subjects worldwide.
-Use simple language and explain difficult ideas step by step.
-Use examples and show working for calculations.
-When asked for practice, create questions at an appropriate level.
-Give answers with explanations.
-Be encouraging, accurate and clear.`;
- }
-
- if(mode==="conversation"){
-  return `You are DRIPSCALLION AI Conversation Helper.
-Help people write natural, realistic messages.
-Support English, Kiswahili and Sheng.
-Help with greetings, friendships, everyday conversations and age-appropriate relationships.
-Avoid robotic, cheesy, exaggerated or overly romantic lines.
-Match the user's requested tone.
-Respect boundaries and consent.
-Keep suggested messages natural and concise.`;
- }
-
- return `You are DRIPSCALLION AI, a capable and natural conversational assistant.
-Respond naturally, like a helpful person.
-Understand context and the user's actual question.
-Mirror the language used by the user, including English, Kiswahili and Sheng.
-Keep simple answers short.
-Explain difficult topics clearly.
-Use headings, lists, examples and code only when useful.
-Do not repeat the question unnecessarily.
-Do not invent facts or claim tools are available when they are not.
-Be friendly, thoughtful and direct.`;
+function openAccount() {
+  $("accountModal").style.display = "flex";
 }
 
-function conversationContext(chat){
- return chat.messages.slice(-12).map(m=>
-  (m.role==="user"?"User: ":"Assistant: ")+m.text
- ).join("\n\n");
+function closeAccount() {
+  $("accountModal").style.display = "none";
 }
 
-/* AI REQUEST */
-async function requestAI(){
- const chat=activeChat();
- if(!chat)return;
+function guestMode() {
+  closeAccount();
+  currentUser = null;
+  $("accountStatus").textContent = "Guest mode";
+  loadGuestChats();
+}
 
- const chatId=chat.id;
- $("status").textContent="DRIPSCALLION AI is thinking...";
- $("sendBtn").textContent="■";
- $("sendBtn").title="Stop generation";
+async function login() {
+  const email = $("email").value.trim();
+  const password = $("password").value;
 
- const typing=document.createElement("div");
- typing.className="typing";
- typing.id="typing";
- typing.textContent="DRIPSCALLION AI is thinking...";
- $("messages").appendChild(typing);
+  if (!email || !password) {
+    showNotice("authMessage", "Enter your email and password.");
+    return;
+  }
 
- const context=conversationContext(chat);
-
- const fullPrompt=
- modeInstruction()+
- "\n\nConversation so far:\n"+context+
- "\n\nRespond to the latest user message. Remember the conversation.";
-
- controller=new AbortController();
-
- try{
-  const response=await fetch("/api/chat",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({message:fullPrompt}),
-   signal:controller.signal
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email, password
   });
 
-  if(!response.ok)throw new Error("Server returned "+response.status);
-
-  const data=await response.json();
-  const answer=data.response||data.text||data.result;
-
-  if(!answer)throw new Error("Empty AI response.");
-
-  $("typing")?.remove();
-
-  // Keep the answer attached to the chat that started the request.
-  const originalActiveId=activeId;
-  activeId=chatId;
-  addMessage("assistant",answer);
-  activeId=originalActiveId;
-
-  if(activeId===chatId){
-   $("status").textContent="";
+  if (error) {
+    showNotice("authMessage", error.message);
+    return;
   }
 
- }catch(error){
-  $("typing")?.remove();
+  currentUser = data.user;
+  $("accountStatus").textContent = currentUser.email;
+  closeAccount();
+  await loadChats();
+}
 
-  if(error.name==="AbortError"){
-   $("status").textContent="Generation stopped.";
-  }else{
-   console.error(error);
-   $("status").textContent="Connection problem. Please try again.";
+async function signup() {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || !password) {
+    showNotice("authMessage", "Enter your email and password.");
+    return;
   }
- }finally{
-  controller=null;
-  $("sendBtn").textContent="➤";
-  $("sendBtn").title="Send message";
-  $("content").scrollTop=$("content").scrollHeight;
- }
-}
 
-/* SEND AND REGENERATE */
-async function sendMessage(){
- if(controller){
-  controller.abort();
-  return;
- }
-
- let value=$("input").value.trim();
- if(!value&&!attachedText)return;
-
- if(accountLoading)return;
-
- if(attachedText){
-  value+="\n\nAttached text file ("+attachedName+"):\n"+attachedText;
- }
-
- if(!activeChat())createChat();
-
- addMessage("user",value);
-
- $("input").value="";
- $("input").style.height="auto";
-
- clearAttachment();
- await requestAI();
-}
-
-async function regenerateAnswer(){
- const chat=activeChat();
- if(!chat||controller)return;
-
- const lastUser=[...chat.messages].reverse().find(m=>m.role==="user");
- if(!lastUser)return;
-
- if(chat.messages.length&&chat.messages[chat.messages.length-1].role==="assistant"){
-  chat.messages.pop();
-  chat.updated=Date.now();
-  save();
-  openChat(chat.id);
- }
-
- await requestAI();
-}
-
-/* ATTACHMENTS */
-function clearAttachment(){
- attachedText="";
- attachedName="";
- $("fileInfo").textContent="";
- $("fileInfo").classList.add("hidden");
-}
-
-/* EVENT LISTENERS */
-$("newChat").onclick=newChat;
-
-$("sidebarBtn").onclick=()=>
- $("sidebar").classList.toggle("open");
-
-$("search").oninput=renderHistory;
-$("sendBtn").onclick=sendMessage;
-
-$("input").addEventListener("keydown",e=>{
- if(e.key==="Enter"&&!e.shiftKey){
-  e.preventDefault();
-  sendMessage();
- }
-});
-
-$("input").addEventListener("input",()=>{
- $("input").style.height="auto";
- $("input").style.height=Math.min($("input").scrollHeight,160)+"px";
-});
-
-$("attachBtn").onclick=()=>$("fileInput").click();
-
-$("fileInput").onchange=async e=>{
- const file=e.target.files[0];
- if(!file)return;
-
- if(file.size>100000){
-  $("status").textContent="Text files must be smaller than 100 KB.";
-  e.target.value="";
-  return;
- }
-
- try{
-  attachedText=await file.text();
-  attachedName=file.name;
-  $("fileInfo").textContent="📎 "+attachedName+" (ready to send)";
-  $("fileInfo").classList.remove("hidden");
-  $("status").textContent="File ready. Send your message to include it.";
- }catch(err){
-  $("status").textContent="Could not read this file.";
- }
-
- e.target.value="";
-};
-
-document.querySelectorAll(".suggestion").forEach(btn=>{
- btn.onclick=()=>{
-  $("mode").value=btn.dataset.mode;
-  $("input").value=btn.dataset.prompt;
-  $("input").focus();
- };
-});
-
-/* ACCOUNT EVENTS */
-$("accountBtn").onclick=openAuth;
-$("authClose").onclick=closeAuth;
-$("showLogin").onclick=()=>setAuthMode("login");
-$("showSignup").onclick=()=>setAuthMode("signup");
-$("authSubmit").onclick=submitAuth;
-$("logoutBtn").onclick=logout;
-
-$("guestBtn").onclick=()=>{
- localStorage.setItem("dripscallion_guest_choice","yes");
- closeAuth();
-
- if(!currentUser){
-  applyGuest();
- }
-};
-
-$("authOverlay").addEventListener("click",e=>{
- if(e.target===$("authOverlay"))closeAuth();
-});
-
-$("authPassword").addEventListener("keydown",e=>{
- if(e.key==="Enter")submitAuth();
-});
-
-$("authEmail").addEventListener("keydown",e=>{
- if(e.key==="Enter")$("authPassword").focus();
-});
-
-/* START APP */
-async function startApp(){
- renderHistory();
-
- try{
-  const {data,error}=await supabaseClient.auth.getSession();
-
-  if(error)throw error;
-
-  if(data.session && data.session.user){
-   await applyAccount(data.session.user);
-  }else{
-   applyGuest();
-
-   const choseGuest =
-    localStorage.getItem("dripscallion_guest_choice");
-
-   if(!choseGuest){
-    openAuth();
-   }
+  if (password.length < 6) {
+    showNotice("authMessage", "Password must be at least 6 characters.");
+    return;
   }
- }catch(error){
-  console.error("Startup error:",error);
-  applyGuest();
-  $("status").textContent="Using Guest Mode. Account connection is unavailable.";
- }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: window.location.origin }
+  });
+
+  if (error) {
+    showNotice("authMessage", error.message);
+    return;
+  }
+
+  if (data.user && data.session) {
+    currentUser = data.user;
+    $("accountStatus").textContent = currentUser.email;
+    closeAccount();
+    await loadChats();
+  } else {
+    showNotice("authMessage", "Account created. Check your email if confirmation is required, then log in.");
+  }
 }
 
-updateAccountButton();
-startApp();
+async function logout() {
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  chats = [];
+  currentChatId = null;
+  $("accountStatus").textContent = "Guest mode";
+  loadGuestChats();
+  closeAccount();
+}
+
+function loadGuestChats() {
+  try {
+    chats = JSON.parse(localStorage.getItem("dripscallion_chats") || "[]");
+  } catch {
+    chats = [];
+  }
+  currentChatId = chats[0]?.id || null;
+  renderChatList();
+  renderMessages();
+}
+
+async function loadChats() {
+  if (!currentUser) {
+    loadGuestChats();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("chats")
+    .select("*")
+    .order("updated_at", { ascending:false });
+
+  if (error) {
+    alert("Could not load chats: " + error.message);
+    return;
+  }
+
+  chats = data || [];
+  currentChatId = chats[0]?.id || null;
+  renderChatList();
+  renderMessages();
+}
+
+function saveGuestChats() {
+  localStorage.setItem("dripscallion_chats", JSON.stringify(chats));
+}
+
+async function saveChat(chat) {
+  chat.updated_at = new Date().toISOString();
+
+  if (!currentUser) {
+    saveGuestChats();
+    renderChatList();
+    return;
+  }
+
+  const record = {
+    id: chat.id,
+    user_id: currentUser.id,
+    title: chat.title || "New chat",
+    messages: chat.messages || [],
+    updated_at: chat.updated_at
+  };
+
+  const { error } = await supabaseClient
+    .from("chats")
+    .upsert(record, { onConflict:"id" });
+
+  if (error) console.error("Chat save error:", error);
+  renderChatList();
+}
+
+function getCurrentChat() {
+  return chats.find(chat => chat.id === currentChatId);
+}
+
+function newChat() {
+  const chat = {
+    id:newId(),
+    title:"New chat",
+    messages:[],
+    updated_at:new Date().toISOString()
+  };
+
+  chats.unshift(chat);
+  currentChatId = chat.id;
+
+  if (!currentUser) saveGuestChats();
+  renderChatList();
+  renderMessages();
+  showPage("chat", document.querySelector('[data-page="chat"]'));
+}
+
+function openChat(id) {
+  currentChatId = id;
+  renderChatList();
+  renderMessages();
+  showPage("chat", document.querySelector('[data-page="chat"]'));
+}
+
+function renderChatList() {
+  $("chatList").innerHTML = chats.map(chat => `
+    <div class="chat-item ${chat.id === currentChatId ? "active" : ""}"
+      onclick="openChat('${chat.id}')">
+      ${escapeHTML(chat.title || "New chat")}
+    </div>
+  `).join("");
+}
+
+function renderMessages() {
+  const chat = getCurrentChat();
+  const messages = chat?.messages || [];
+
+  $("welcome").style.display = messages.length ? "none" : "block";
+
+  $("messages").innerHTML = messages.map((message, index) => `
+    <div class="message ${message.role === "user" ? "user" : "assistant"}">
+      <div class="avatar">${message.role === "user" ? "YOU" : "D"}</div>
+      <div class="bubble">
+        ${escapeHTML(message.content)}
+        <div class="message-actions">
+          <button onclick="copyMessage(${index})">Copy</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  $("messages").scrollIntoView({ block:"end", behavior:"smooth" });
+}
+
+function copyMessage(index) {
+  const chat = getCurrentChat();
+  if (chat?.messages[index]) {
+    navigator.clipboard.writeText(chat.messages[index].content);
+  }
+}
+
+function clearChatInput() {
+  $("chatInput").value = "";
+  attachedFile = null;
+  $("chatAttachment").value = "";
+  $("attachmentName").textContent = "";
+}
+
+$("chatAttachment").addEventListener("change", event => {
+  attachedFile = event.target.files[0] || null;
+  $("attachmentName").textContent = attachedFile ? attachedFile.name : "";
+});
+
+async function sendChat() {
+  const input = $("chatInput");
+  const message = input.value.trim();
+
+  if (!message && !attachedFile) return;
+
+  let finalMessage = message;
+
+  if (attachedFile) {
+    const file = attachedFile;
+
+    if (file.type.startsWith("image/")) {
+      showPage("vision", document.querySelector('[data-page="vision"]'));
+      $("visionFiles").files = $("chatAttachment").files;
+      $("visionPrompt").value = message || "Describe this image.";
+      clearChatInput();
+      return;
+    }
+
+    if (file.name.toLowerCase().endsWith(".pdf") ||
+        file.name.toLowerCase().endsWith(".docx") ||
+        file.type.startsWith("text/") ||
+        /\.(txt|md|csv)$/i.test(file.name)) {
+      const text = await extractFileText(file);
+      finalMessage += "\n\nAttached document content:\n" + text.slice(0,30000);
+    } else {
+      alert("This file type is not supported in chat.");
+      return;
+    }
+  }
+
+  if (!finalMessage.trim()) return;
+
+  if (!currentChatId) newChat();
+
+  const chat = getCurrentChat();
+  chat.messages.push({ role:"user", content:finalMessage });
+
+  if (chat.messages.length === 1) {
+    chat.title = message.slice(0,45) || "New chat";
+  }
+
+  input.value = "";
+  attachedFile = null;
+  $("chatAttachment").value = "";
+  $("attachmentName").textContent = "";
+  renderMessages();
+  await saveChat(chat);
+
+  $("sendButton").disabled = true;
+  $("sendButton").textContent = "Thinking...";
+
+  try {
+    const history = chat.messages.slice(-12)
+      .map(item => (item.role === "user" ? "User: " : "Assistant: ") + item.content)
+      .join("\n\n");
+
+    const response = await fetch("/api/chat", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ message:history })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.error || "Chat request failed.");
+
+    chat.messages.push({
+      role:"assistant",
+      content:data.response || "I could not generate a response."
+    });
+
+  } catch (error) {
+    chat.messages.push({
+      role:"assistant",
+      content:"Sorry, something went wrong: " + error.message
+    });
+  }
+
+  $("sendButton").disabled = false;
+  $("sendButton").textContent = "Send ↑";
+  renderMessages();
+  await saveChat(chat);
+}
+
+$("chatInput").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendChat();
+  }
+});
+
+async function postJSON(path, body) {
+  const response = await fetch(path, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    if (!response.ok) throw new Error("The AI service returned an error.");
+    return response;
+  }
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Request failed.");
+  return data;
+}
+
+function setBusy(button, busy, label) {
+  button.disabled = busy;
+  button.textContent = busy ? "Please wait..." : label;
+}
+
+async function generateImage() {
+  const prompt = $("imagePrompt").value.trim();
+  const button = $("imageButton");
+  if (!prompt) return alert("Describe your image first.");
+
+  setBusy(button,true,"Generate Image");
+
+  try {
+    const data = await postJSON("/api/image",{prompt});
+    $("imageResult").innerHTML = `
+      <img class="result-img" src="${data.image}" alt="Generated image">
+      <button class="tool-btn action" onclick="downloadImage()">Save Image</button>
+    `;
+    window.latestGeneratedImage = data.image;
+    saveCreation(data.image,prompt);
+  } catch(error) {
+    $("imageResult").textContent = error.message;
+  }
+
+  setBusy(button,false,"Generate Image");
+}
+
+function downloadImage() {
+  if (!window.latestGeneratedImage) return;
+  const link = document.createElement("a");
+  link.href = window.latestGeneratedImage;
+  link.download = "dripscallion-creation.jpg";
+  link.click();
+}
+
+function saveCreation(image,prompt) {
+  try {
+    const items = JSON.parse(localStorage.getItem("dripscallion_creations") || "[]");
+    items.unshift({
+      image,
+      prompt,
+      date:new Date().toISOString()
+    });
+    localStorage.setItem("dripscallion_creations",JSON.stringify(items.slice(0,15)));
+    renderGallery();
+  } catch(error) {
+    console.warn("Could not save creation locally:",error);
+  }
+}
+
+function renderGallery() {
+  let items = [];
+  try {
+    items = JSON.parse(localStorage.getItem("dripscallion_creations") || "[]");
+  } catch {}
+
+  $("gallery").innerHTML = items.map((item,index) => `
+    <div class="gallery-item">
+      <img src="${item.image}" alt="Creation ${index + 1}">
+      <p>${escapeHTML(item.prompt)}</p>
+      <button class="tool-btn" onclick="downloadGalleryImage(${index})">Save</button>
+    </div>
+  `).join("") || '<p class="muted">Your creations will appear here.</p>';
+}
+
+function downloadGalleryImage(index) {
+  const items = JSON.parse(localStorage.getItem("dripscallion_creations") || "[]");
+  const item = items[index];
+  if (!item) return;
+  const link = document.createElement("a");
+  link.href = item.image;
+  link.download = "dripscallion-image.jpg";
+  link.click();
+}
+
+function clearCreations() {
+  if (!confirm("Clear all locally saved creations?")) return;
+  localStorage.removeItem("dripscallion_creations");
+  renderGallery();
+}
+
+function fileToDataURL(file) {
+  return new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function analyseImages() {
+  const files = [...$("visionFiles").files];
+  if (!files.length) return alert("Choose an image first.");
+
+  if (files.length > 5) return alert("Choose up to five images.");
+
+  try {
+    const images = [];
+    for (const file of files) {
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Each image must be under 5 MB.");
+      }
+      images.push(await fileToDataURL(file));
+    }
+
+    $("visionResult").textContent = "Analysing images...";
+
+    const data = await postJSON("/api/vision", {
+      images,
+      prompt:$("visionPrompt").value.trim() || "Describe these images."
+    });
+
+    $("visionResult").textContent = data.response;
+  } catch(error) {
+    $("visionResult").textContent = error.message;
+  }
+}
+
+async function analyseVideo() {
+  const file = $("videoFile").files[0];
+  if (!file) return alert("Choose a video first.");
+
+  if (file.size > 30 * 1024 * 1024) {
+    return alert("For this browser-based video analysis, choose a video under 30 MB.");
+  }
+
+  const result = $("videoResult");
+  result.textContent = "Preparing video frames...";
+
+  try {
+    const videoURL = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.src = videoURL;
+    video.muted = true;
+    video.preload = "metadata";
+
+    await new Promise((resolve,reject) => {
+      video.onloadedmetadata = resolve;
+      video.onerror = reject;
+    });
+
+    const duration = video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) {
+      throw new Error("Could not read this video.");
+    }
+
+    const canvas = document.createElement("canvas");
+    const scale = Math.min(1,640 / video.videoWidth);
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+
+    const ctx = canvas.getContext("2d");
+    const frames = [];
+    const count = Math.min(5,Math.max(1,Math.ceil(duration / 10)));
+
+    for (let i = 0; i < count; i++) {
+      video.currentTime = duration * (i + 0.5) / count;
+
+      await new Promise(resolve => {
+        video.onseeked = resolve;
+      });
+
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      frames.push(canvas.toDataURL("image/jpeg",0.75));
+    }
+
+    URL.revokeObjectURL(videoURL);
+    result.textContent = "Analysing selected frames...";
+
+    const data = await postJSON("/api/vision", {
+      images:frames,
+      prompt:($("videoPrompt").value.trim() || "Describe what happens in this video.") +
+        " These are selected frames from a video. Explain what can be inferred from them."
+    });
+
+    result.textContent = data.response +
+      "\n\nNote: This analysis uses selected video frames, not continuous full-video or audio analysis.";
+
+  } catch(error) {
+    result.textContent = "Video analysis failed: " + error.message;
+  }
+}
+
+async function transcribeAudio() {
+  const file = $("audioFile").files[0];
+  if (!file) return alert("Choose an audio file.");
+
+  if (file.size > 7 * 1024 * 1024) {
+    return alert("Choose an audio file under 7 MB.");
+  }
+
+  $("transcript").value = "Transcribing...";
+
+  try {
+    const base64 = await fileToDataURL(file);
+    const audio = base64.split(",")[1];
+
+    const data = await postJSON("/api/transcribe",{audio});
+    $("transcript").value = data.text || "No transcription returned.";
+  } catch(error) {
+    $("transcript").value = error.message;
+  }
+}
+
+async function speakText() {
+  const text = $("speakText").value.trim();
+  if (!text) return alert("Enter text first.");
+
+  $("speechResult").textContent = "Generating speech...";
+
+  try {
+    const response = await fetch("/api/speak", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text})
+    });
+
+    if (!response.ok) {
+      let error = {};
+      try { error = await response.json(); } catch {}
+      throw new Error(error.error || "Speech generation failed.");
+    }
+
+    const blob = await response.blob();
+    const audioURL = URL.createObjectURL(blob);
+
+    $("speechResult").innerHTML = "";
+    const player = document.createElement("audio");
+    player.controls = true;
+    player.className = "result-audio";
+    player.src = audioURL;
+    $("speechResult").appendChild(player);
+    player.play().catch(() => {});
+  } catch(error) {
+    $("speechResult").textContent = error.message;
+  }
+}
+
+async function toggleRecording() {
+  if (recording) {
+    mediaRecorder.stop();
+    recording = false;
+    $("recordButton").textContent = "Start Recording";
+    $("recordStatus").textContent = "Preparing transcription...";
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return alert("Microphone recording requires a secure HTTPS connection and browser permission.");
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = event => {
+      if (event.data.size) recordedChunks.push(event.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(track => track.stop());
+
+      const blob = new Blob(recordedChunks,{type:mediaRecorder.mimeType || "audio/webm"});
+      const reader = new FileReader();
+
+      reader.onload = async () => {
+        try {
+          const audio = reader.result.split(",")[1];
+          const data = await postJSON("/api/transcribe",{audio});
+          $("transcript").value = data.text || "";
+          $("recordStatus").textContent = "Transcription ready. You can copy it into chat.";
+        } catch(error) {
+          $("recordStatus").textContent = error.message;
+        }
+      };
+
+      reader.readAsDataURL(blob);
+    };
+
+    mediaRecorder.start();
+    recording = true;
+    $("recordButton").textContent = "Stop Recording";
+    $("recordStatus").textContent = "Recording...";
+
+  } catch(error) {
+    $("recordStatus").textContent = "Microphone error: " + error.message;
+  }
+}
+
+async function extractFileText(file) {
+  const name = file.name.toLowerCase();
+
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error("Choose a document under 10 MB.");
+  }
+
+  if (name.endsWith(".pdf")) {
+    const buffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:buffer}).promise;
+    let text = "";
+
+    for (let pageNumber = 1; pageNumber <= Math.min(pdf.numPages,30); pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(" ") + "\n";
+    }
+    return text;
+  }
+
+  if (name.endsWith(".docx")) {
+    const buffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({arrayBuffer:buffer});
+    return result.value;
+  }
+
+  return await file.text();
+}
+
+async function readDocument() {
+  const file = $("documentFile").files[0];
+  if (!file) return alert("Choose a document.");
+
+  $("documentText").value = "Reading document...";
+
+  try {
+    extractedDocument = await extractFileText(file);
+    $("documentText").value = extractedDocument.slice(0,50000) ||
+      "No readable text found. Scanned documents may need OCR.";
+  } catch(error) {
+    $("documentText").value = error.message;
+  }
+}
+
+async function askAboutDocument() {
+  const text = $("documentText").value.trim();
+  const question = $("documentQuestion").value.trim();
+
+  if (!text) return alert("Read a document first.");
+
+  $("documentResult").textContent = "Working...";
+
+  try {
+    const data = await postJSON("/api/chat", {
+      message:"Use this document to answer the user's request.\n\nDOCUMENT:\n" +
+        text.slice(0,30000) +
+        "\n\nUSER REQUEST:\n" + (question || "Summarise this document.")
+    });
+
+    $("documentResult").textContent = data.response;
+  } catch(error) {
+    $("documentResult").textContent = error.message;
+  }
+}
+
+async function runStudy() {
+  const subject = $("studySubject").value;
+  const question = $("studyQuestion").value.trim();
+
+  if (!question) return alert("Enter your study question.");
+
+  $("studyResult").textContent = "Preparing your explanation...";
+
+  try {
+    const data = await postJSON("/api/chat", {
+      message:"Act as a clear and patient study assistant. Subject: " +
+        subject + ". Explain step by step, use examples, and help the learner understand. Question: " + question
+    });
+    $("studyResult").textContent = data.response;
+  } catch(error) {
+    $("studyResult").textContent = error.message;
+  }
+}
+
+async function runHelper() {
+  const style = $("helperStyle").value;
+  const message = $("helperMessage").value.trim();
+
+  if (!message) return alert("Enter a message or explain what you want to say.");
+
+  $("helperResult").textContent = "Creating your reply...";
+
+  try {
+    const data = await postJSON("/api/chat", {
+      message:"Help me write a reply in this style: " + style +
+        ". Keep it natural and suitable for the situation. Do not invent details. Here is the context: " + message
+    });
+    $("helperResult").textContent = data.response;
+  } catch(error) {
+    $("helperResult").textContent = error.message;
+  }
+}
+
+async function init() {
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+
+  const { data } = await supabaseClient.auth.getSession();
+  currentUser = data.session?.user || null;
+
+  if (currentUser) {
+    $("accountStatus").textContent = currentUser.email;
+    await loadChats();
+  } else {
+    loadGuestChats();
+  }
+
+  renderGallery();
+
+  supabaseClient.auth.onAuthStateChange(async (_event,session) => {
+    currentUser = session?.user || null;
+    $("accountStatus").textContent = currentUser?.email || "Guest mode";
+    if (currentUser) await loadChats();
+  });
+}
+
+init();
 </script>
 </body>
 </html>
