@@ -10,16 +10,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DRIPSCALLION AI">
+
 <style>
 :root{
- --bg:#080b18;
- --panel:#101429;
- --panel2:#171c35;
- --border:#282e4b;
- --purple:#9b7cff;
- --purple2:#7654d9;
- --text:#f4f2ff;
- --muted:#969bb5;
+ --bg:#080b18;--panel:#101429;--panel2:#171c35;
+ --border:#282e4b;--purple:#9b7cff;--purple2:#7654d9;
+ --text:#f4f2ff;--muted:#969bb5;
 }
 *{box-sizing:border-box}
 body{
@@ -38,19 +34,18 @@ button{cursor:pointer}
 .sidebar{
  width:270px;flex-shrink:0;background:rgba(12,15,32,.96);
  border-right:1px solid var(--border);
- display:flex;flex-direction:column;padding:15px;
- z-index:5
+ display:flex;flex-direction:column;padding:15px;z-index:5
 }
 .brand{font-size:19px;font-weight:800;padding:10px 5px 22px}
 .brand span{color:var(--purple)}
 .newchat{
- width:100%;padding:12px;border-radius:10px;
- color:white;background:linear-gradient(110deg,#7654d9,#4e397e);
+ width:100%;padding:12px;border-radius:10px;color:white;
+ background:linear-gradient(110deg,#7654d9,#4e397e);
  border:0;text-align:left;margin-bottom:12px
 }
 .search{
- width:100%;padding:11px;border-radius:9px;
- color:white;background:#171b30;border:1px solid var(--border);
+ width:100%;padding:11px;border-radius:9px;color:white;
+ background:#171b30;border:1px solid var(--border);
  outline:none;margin-bottom:15px
 }
 .section-label{
@@ -69,8 +64,7 @@ button{cursor:pointer}
  padding:9px 5px;color:#e5e2f3;font-size:13px
 }
 .chat-options{
- color:#aaa;background:none;border:0;padding:7px;
- border-radius:6px
+ color:#aaa;background:none;border:0;padding:7px;border-radius:6px
 }
 .chat-options:hover{background:#353958}
 .side-footer{
@@ -95,6 +89,12 @@ button{cursor:pointer}
 .mode{
  background:#171b30;color:white;border:1px solid var(--border);
  padding:9px;border-radius:9px;max-width:165px
+}
+.account-btn{
+ background:#211b3c;color:#eee;border:1px solid #514078;
+ border-radius:9px;padding:9px 11px;max-width:145px;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:12px
 }
 
 /* CHAT AREA */
@@ -121,10 +121,10 @@ button{cursor:pointer}
 .message.user{justify-content:flex-end}
 .message.assistant{justify-content:flex-start}
 .avatar{
- width:32px;height:32px;border-radius:50%;
- flex-shrink:0;display:flex;align-items:center;
- justify-content:center;font-size:10px;font-weight:bold;
- background:#302653;border:1px solid #51407f
+ width:32px;height:32px;border-radius:50%;flex-shrink:0;
+ display:flex;align-items:center;justify-content:center;
+ font-size:10px;font-weight:bold;background:#302653;
+ border:1px solid #51407f
 }
 .message.user .avatar{background:#343951;border-color:#4c5372}
 .bubble{
@@ -168,30 +168,62 @@ button{cursor:pointer}
 }
 .composer:focus-within{border-color:var(--purple)}
 .composer textarea{
- flex:1;min-width:0;resize:none;max-height:160px;
- min-height:28px;background:transparent;border:0;
- outline:none;color:white;padding:9px 4px;line-height:1.6
+ flex:1;min-width:0;resize:none;max-height:160px;min-height:28px;
+ background:transparent;border:0;outline:none;color:white;
+ padding:9px 4px;line-height:1.6
 }
 .circle{
  width:39px;height:39px;flex-shrink:0;border-radius:50%;
  border:1px solid #414560;background:#272b46;color:white
 }
-.send{
- background:var(--purple);color:#130d25;
- border:0;font-weight:bold
-}
-.send:disabled{opacity:.4;cursor:not-allowed}
-.note{
- text-align:center;color:#737991;font-size:11px;
- margin-top:9px
-}
-.status{
- max-width:850px;margin:5px auto 0;
- color:#b6a5ff;font-size:12px
-}
-.file-info{max-width:850px;margin:5px auto;color:#c7b8ff;font-size:12px}
+.send{background:var(--purple);color:#130d25;border:0;font-weight:bold}
+.note{text-align:center;color:#737991;font-size:11px;margin-top:9px}
+.status,.file-info{max-width:850px;margin:5px auto 0;font-size:12px}
+.status{color:#b6a5ff}
+.file-info{color:#c7b8ff}
 .hidden{display:none!important}
 .empty{color:var(--muted);font-size:13px;padding:12px}
+
+/* ACCOUNT MODAL */
+.overlay{
+ position:fixed;inset:0;background:rgba(3,5,15,.78);
+ backdrop-filter:blur(8px);z-index:20;
+ display:flex;align-items:center;justify-content:center;padding:15px
+}
+.auth-card{
+ width:100%;max-width:420px;background:#11162c;
+ border:1px solid #343858;border-radius:18px;
+ padding:25px;box-shadow:0 20px 70px #0009
+}
+.auth-card h2{margin:0 0 8px;font-size:23px}
+.auth-card p{color:var(--muted);font-size:13px;line-height:1.6}
+.auth-input{
+ width:100%;padding:13px;margin:7px 0;
+ background:#090e20;border:1px solid #343858;
+ border-radius:9px;color:white;outline:none
+}
+.auth-input:focus{border-color:var(--purple)}
+.auth-primary,.auth-secondary,.auth-guest,.auth-logout{
+ width:100%;padding:12px;border-radius:9px;margin-top:9px;
+ border:0;font-weight:bold
+}
+.auth-primary{background:linear-gradient(110deg,#7654d9,#4e397e);color:white}
+.auth-secondary{background:#252a46;color:white;border:1px solid #414866}
+.auth-guest{background:#171c34;color:#ddd;border:1px solid #363d5d}
+.auth-logout{background:#482533;color:#ffdce5;border:1px solid #744052}
+.auth-links{
+ display:flex;justify-content:space-between;gap:10px;margin-top:15px
+}
+.auth-links button{
+ background:none;border:0;color:#b9a7ff;font-size:12px;padding:5px
+}
+.auth-message{font-size:12px;color:#c6b8ff;line-height:1.5;margin-top:12px}
+.auth-close{
+ float:right;background:none;border:0;color:#aaa;font-size:21px
+}
+.account-email{
+ color:#d5c9ff!important;overflow-wrap:anywhere
+}
 
 /* MOBILE */
 @media(max-width:700px){
@@ -206,7 +238,8 @@ button{cursor:pointer}
  .welcome h1{font-size:27px}
  .suggestions{grid-template-columns:1fr}
  .bubble{max-width:88%;font-size:14px}
- .mode{max-width:125px}
+ .mode{max-width:115px}
+ .account-btn{max-width:105px;padding:8px;font-size:11px}
 }
 </style>
 </head>
@@ -216,13 +249,10 @@ button{cursor:pointer}
 
 <aside class="sidebar" id="sidebar">
  <div class="brand">DRIPSCALLION <span>AI</span></div>
-
  <button class="newchat" id="newChat">＋ New chat</button>
  <input class="search" id="search" placeholder="Search chats...">
-
  <div class="section-label">RECENT CONVERSATIONS</div>
  <div class="history" id="history"></div>
-
  <div class="side-footer">
   DRIPSCALLION AI STUDIO<br>
   <span>From Machakos to the World.</span>
@@ -241,6 +271,7 @@ button{cursor:pointer}
     <option value="study">Study Assistant</option>
     <option value="conversation">Conversation Helper</option>
    </select>
+   <button class="account-btn" id="accountBtn">Account</button>
   </div>
  </header>
 
@@ -248,7 +279,6 @@ button{cursor:pointer}
   <div class="welcome" id="welcome">
    <h1>What can I help you <span>with?</span></h1>
    <p>Your assistant for learning, creativity, ideas and everyday challenges.</p>
-
    <div class="suggestions">
     <button class="suggestion" data-mode="study"
      data-prompt="Teach me a difficult topic in simple language, step by step.">
@@ -268,7 +298,6 @@ button{cursor:pointer}
     </button>
    </div>
   </div>
-
   <div class="messages" id="messages"></div>
  </section>
 
@@ -287,7 +316,49 @@ button{cursor:pointer}
 
 <input type="file" id="fileInput" accept=".txt,.md,.csv,.json" hidden>
 
+<!-- ACCOUNT WINDOW -->
+<div class="overlay hidden" id="authOverlay">
+ <div class="auth-card">
+  <button class="auth-close" id="authClose">×</button>
+  <h2 id="authTitle">Welcome to DRIPSCALLION AI</h2>
+  <p id="authDescription">Sign in, create an account, or continue as a guest.</p>
+
+  <div id="authForm">
+   <input class="auth-input" id="authEmail" type="email"
+    placeholder="Email address" autocomplete="email">
+   <input class="auth-input" id="authPassword" type="password"
+    placeholder="Password" autocomplete="current-password">
+   <button class="auth-primary" id="authSubmit">Login</button>
+   <div class="auth-links">
+    <button id="showLogin">Login</button>
+    <button id="showSignup">Create account</button>
+   </div>
+   <button class="auth-guest" id="guestBtn">Continue as Guest</button>
+  </div>
+
+  <div id="accountInfo" class="hidden">
+   <p class="account-email" id="accountEmail"></p>
+   <button class="auth-logout" id="logoutBtn">Log out</button>
+  </div>
+
+  <div class="auth-message" id="authMessage"></div>
+ </div>
+</div>
+
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+/* SUPABASE CONNECTION */
+const SUPABASE_URL = "https://ftvprgacnbnvwmyoqbwz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_lQQg4hQqx8-Ix2gV0qaQ4A_ypKVsp7R";
+
+const supabaseClient = window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY
+);
+
+/* APP STATE */
 const $ = id => document.getElementById(id);
 
 let chats = [];
@@ -295,14 +366,27 @@ let activeId = null;
 let attachedText = "";
 let attachedName = "";
 let controller = null;
-let lastUserPrompt = "";
+let currentUser = null;
+let authMode = "login";
+let cloudSaveQueue = Promise.resolve();
+let accountLoading = false;
 
-try {
- chats = JSON.parse(localStorage.getItem("dripscallion_chats") || "[]");
- if(!Array.isArray(chats)) chats = [];
-} catch(e){ chats = []; }
+/* GUEST STORAGE */
+function loadGuestChats(){
+ try{
+  const stored = JSON.parse(localStorage.getItem("dripscallion_chats") || "[]");
+  chats = Array.isArray(stored) ? stored : [];
+ }catch(e){
+  chats = [];
+ }
+}
 
 function save(){
+ if(currentUser){
+  saveCloudChats();
+  return;
+ }
+
  try{
   localStorage.setItem("dripscallion_chats",JSON.stringify(chats));
  }catch(e){
@@ -310,8 +394,241 @@ function save(){
  }
 }
 
+/* ACCOUNT CHAT STORAGE */
+function saveCloudChats(){
+ if(!currentUser || !chats.length)return;
+
+ const userId = currentUser.id;
+ const snapshot = chats.map(chat=>({
+  id:chat.id,
+  user_id:userId,
+  title:chat.title || "New chat",
+  messages:Array.isArray(chat.messages) ? chat.messages : [],
+  created_at:chat.created_at || new Date().toISOString(),
+  updated_at:new Date().toISOString()
+ }));
+
+ cloudSaveQueue = cloudSaveQueue.then(async()=>{
+  if(!currentUser || currentUser.id !== userId)return;
+
+  const {error} = await supabaseClient
+   .from("chats")
+   .upsert(snapshot,{onConflict:"id"});
+
+  if(error){
+   console.error("Cloud save error:",error);
+   $("status").textContent="Cloud save failed. Check your connection.";
+  }
+ }).catch(error=>{
+  console.error(error);
+ });
+}
+
+async function loadAccountChats(user){
+ accountLoading = true;
+ $("status").textContent="Loading your conversations...";
+
+ const {data,error} = await supabaseClient
+  .from("chats")
+  .select("id,title,messages,created_at,updated_at")
+  .eq("user_id",user.id)
+  .order("updated_at",{ascending:false});
+
+ accountLoading = false;
+
+ if(error){
+  console.error(error);
+  $("status").textContent="Could not load account chats. Please refresh.";
+  chats = [];
+  return;
+ }
+
+ chats = (data || []).map(row=>({
+  id:row.id,
+  title:row.title || "New chat",
+  messages:Array.isArray(row.messages) ? row.messages : [],
+  created_at:row.created_at,
+  updated:Date.parse(row.updated_at) || Date.now()
+ }));
+
+ $("status").textContent="";
+}
+
+async function applyAccount(user){
+ if(!user)return;
+
+ currentUser = user;
+ await loadAccountChats(user);
+
+ if(chats.length){
+  openChat(chats[0].id);
+ }else{
+  newChat();
+ }
+
+ updateAccountButton();
+ closeAuth();
+ renderHistory();
+}
+
+function applyGuest(){
+ currentUser = null;
+ loadGuestChats();
+
+ if(chats.length){
+  const latest = [...chats].sort((a,b)=>
+   (b.updated || 0)-(a.updated || 0)
+  )[0];
+  openChat(latest.id);
+ }else{
+  newChat();
+ }
+
+ updateAccountButton();
+ renderHistory();
+}
+
+/* ACCOUNT WINDOW */
+function updateAccountButton(){
+ if(currentUser){
+  $("accountBtn").textContent =
+   currentUser.email || "My Account";
+ }else{
+  $("accountBtn").textContent="Guest · Sign in";
+ }
+}
+
+function openAuth(){
+ $("authOverlay").classList.remove("hidden");
+ $("authMessage").textContent="";
+
+ if(currentUser){
+  $("authTitle").textContent="Your account";
+  $("authDescription").textContent="Your DRIPSCALLION AI account is active.";
+  $("authForm").classList.add("hidden");
+  $("accountInfo").classList.remove("hidden");
+  $("accountEmail").textContent=currentUser.email || "";
+ }else{
+  $("accountInfo").classList.add("hidden");
+  $("authForm").classList.remove("hidden");
+  setAuthMode(authMode);
+ }
+}
+
+function closeAuth(){
+ $("authOverlay").classList.add("hidden");
+}
+
+function setAuthMode(mode){
+ authMode = mode;
+ $("authMessage").textContent="";
+ $("authForm").classList.remove("hidden");
+ $("accountInfo").classList.add("hidden");
+
+ if(mode==="signup"){
+  $("authTitle").textContent="Create your account";
+  $("authDescription").textContent="Create an account to keep your conversations online.";
+  $("authSubmit").textContent="Create account";
+  $("authPassword").autocomplete="new-password";
+ }else{
+  $("authTitle").textContent="Welcome back";
+  $("authDescription").textContent="Login to access your saved conversations.";
+  $("authSubmit").textContent="Login";
+  $("authPassword").autocomplete="current-password";
+ }
+}
+
+async function submitAuth(){
+ const email = $("authEmail").value.trim();
+ const password = $("authPassword").value;
+
+ if(!email || !password){
+  $("authMessage").textContent="Enter your email and password.";
+  return;
+ }
+
+ if(password.length < 6){
+  $("authMessage").textContent="Password must be at least 6 characters.";
+  return;
+ }
+
+ $("authSubmit").disabled = true;
+ $("authMessage").textContent="Please wait...";
+
+ try{
+  if(authMode==="signup"){
+   const {data,error} = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options:{
+     emailRedirectTo:window.location.origin
+    }
+   });
+
+   if(error)throw error;
+
+   if(data.session && data.user){
+    await applyAccount(data.user);
+    $("authMessage").textContent="Account created successfully.";
+   }else{
+    $("authMessage").textContent=
+     "Account created. Check your email and confirm your address, then come back and log in.";
+   }
+
+  }else{
+   const {data,error} = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+   });
+
+   if(error)throw error;
+
+   if(data.user){
+    await applyAccount(data.user);
+   }
+  }
+ }catch(error){
+  console.error(error);
+  $("authMessage").textContent =
+   error.message || "Something went wrong. Please try again.";
+ }finally{
+  $("authSubmit").disabled = false;
+ }
+}
+
+async function logout(){
+ $("logoutBtn").disabled=true;
+
+ try{
+  const {error} = await supabaseClient.auth.signOut();
+  if(error)throw error;
+
+  currentUser = null;
+  applyGuest();
+  closeAuth();
+  localStorage.setItem("dripscallion_guest_choice","yes");
+ }catch(error){
+  $("authMessage").textContent=error.message || "Could not log out.";
+ }finally{
+  $("logoutBtn").disabled=false;
+ }
+}
+
+/* CHAT HELPERS */
 function activeChat(){
  return chats.find(c=>c.id===activeId);
+}
+
+function makeId(){
+ if(window.crypto && crypto.randomUUID){
+  return crypto.randomUUID();
+ }
+
+ return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+  const r=Math.random()*16|0;
+  const v=c==="x"?r:(r&0x3|0x8);
+  return v.toString(16);
+ });
 }
 
 function escapeHTML(s){
@@ -337,6 +654,7 @@ function formatText(text){
  return s;
 }
 
+/* HISTORY */
 function renderHistory(){
  const term=$("search").value.toLowerCase();
  $("history").innerHTML="";
@@ -370,7 +688,7 @@ function renderHistory(){
  });
 }
 
-function chatOptions(id){
+async function chatOptions(id){
  const chat=chats.find(c=>c.id===id);
  if(!chat)return;
 
@@ -379,30 +697,52 @@ function chatOptions(id){
 
  if(action.toLowerCase()==="r"){
   const title=prompt("Enter a new chat name:",chat.title);
-  if(title&&title.trim()){
+
+  if(title && title.trim()){
    chat.title=title.trim();
+   chat.updated=Date.now();
    save();
    renderHistory();
   }
  }
 
  if(action.toLowerCase()==="d"){
-  if(confirm("Delete this conversation permanently from this browser?")){
+  if(confirm("Delete this conversation permanently?")){
    chats=chats.filter(c=>c.id!==id);
-   save();
+
+   if(currentUser){
+    const {error}=await supabaseClient
+     .from("chats")
+     .delete()
+     .eq("id",id)
+     .eq("user_id",currentUser.id);
+
+    if(error){
+     $("status").textContent="Could not delete cloud conversation.";
+     console.error(error);
+    }
+   }else{
+    save();
+   }
+
    if(activeId===id)newChat();
    else renderHistory();
   }
  }
 }
 
+/* CREATE AND OPEN CHAT */
 function createChat(){
+ const now=new Date().toISOString();
+
  const chat={
-  id:Date.now().toString()+Math.random().toString(36).slice(2,6),
+  id:makeId(),
   title:"New chat",
   messages:[],
+  created_at:now,
   updated:Date.now()
  };
+
  chats.unshift(chat);
  activeId=chat.id;
  save();
@@ -434,6 +774,7 @@ function openChat(id){
  $("sidebar").classList.remove("open");
 }
 
+/* MESSAGE DISPLAY */
 function renderMessage(role,text){
  $("welcome").classList.add("hidden");
 
@@ -459,7 +800,9 @@ function renderMessage(role,text){
     await navigator.clipboard.writeText(text);
     copy.textContent="Copied!";
     setTimeout(()=>copy.textContent="Copy",1200);
-   }catch(e){copy.textContent="Copy unavailable";}
+   }catch(e){
+    copy.textContent="Copy unavailable";
+   }
   };
 
   const regenerate=document.createElement("button");
@@ -489,11 +832,13 @@ function addMessage(role,text){
  if(role==="user"&&chat.title==="New chat"){
   chat.title=text.slice(0,38)+(text.length>38?"...":"");
  }
+
  save();
  renderMessage(role,text);
  renderHistory();
 }
 
+/* AI MODES */
 function modeInstruction(){
  const mode=$("mode").value;
 
@@ -536,12 +881,15 @@ function conversationContext(chat){
  ).join("\n\n");
 }
 
-async function requestAI(prompt,regenerate=false){
+/* AI REQUEST */
+async function requestAI(){
  const chat=activeChat();
  if(!chat)return;
 
- $("sendBtn").disabled=true;
+ const chatId=chat.id;
  $("status").textContent="DRIPSCALLION AI is thinking...";
+ $("sendBtn").textContent="■";
+ $("sendBtn").title="Stop generation";
 
  const typing=document.createElement("div");
  typing.className="typing";
@@ -574,8 +922,16 @@ async function requestAI(prompt,regenerate=false){
   if(!answer)throw new Error("Empty AI response.");
 
   $("typing")?.remove();
+
+  // Keep the answer attached to the chat that started the request.
+  const originalActiveId=activeId;
+  activeId=chatId;
   addMessage("assistant",answer);
-  $("status").textContent="";
+  activeId=originalActiveId;
+
+  if(activeId===chatId){
+   $("status").textContent="";
+  }
 
  }catch(error){
   $("typing")?.remove();
@@ -583,15 +939,18 @@ async function requestAI(prompt,regenerate=false){
   if(error.name==="AbortError"){
    $("status").textContent="Generation stopped.";
   }else{
+   console.error(error);
    $("status").textContent="Connection problem. Please try again.";
-   addMessage("assistant","I couldn't connect just now. Please check your internet and try again.");
   }
  }finally{
   controller=null;
-  $("sendBtn").disabled=false;
+  $("sendBtn").textContent="➤";
+  $("sendBtn").title="Send message";
+  $("content").scrollTop=$("content").scrollHeight;
  }
 }
 
+/* SEND AND REGENERATE */
 async function sendMessage(){
  if(controller){
   controller.abort();
@@ -601,20 +960,21 @@ async function sendMessage(){
  let value=$("input").value.trim();
  if(!value&&!attachedText)return;
 
+ if(accountLoading)return;
+
  if(attachedText){
   value+="\n\nAttached text file ("+attachedName+"):\n"+attachedText;
  }
 
  if(!activeChat())createChat();
 
- lastUserPrompt=value;
  addMessage("user",value);
 
  $("input").value="";
  $("input").style.height="auto";
 
  clearAttachment();
- await requestAI(value);
+ await requestAI();
 }
 
 async function regenerateAnswer(){
@@ -626,13 +986,15 @@ async function regenerateAnswer(){
 
  if(chat.messages.length&&chat.messages[chat.messages.length-1].role==="assistant"){
   chat.messages.pop();
+  chat.updated=Date.now();
   save();
   openChat(chat.id);
  }
 
- await requestAI(lastUser.text,true);
+ await requestAI();
 }
 
+/* ATTACHMENTS */
 function clearAttachment(){
  attachedText="";
  attachedName="";
@@ -640,13 +1002,13 @@ function clearAttachment(){
  $("fileInfo").classList.add("hidden");
 }
 
+/* EVENT LISTENERS */
 $("newChat").onclick=newChat;
 
 $("sidebarBtn").onclick=()=>
  $("sidebar").classList.toggle("open");
 
 $("search").oninput=renderHistory;
-
 $("sendBtn").onclick=sendMessage;
 
 $("input").addEventListener("keydown",e=>{
@@ -676,12 +1038,13 @@ $("fileInput").onchange=async e=>{
  try{
   attachedText=await file.text();
   attachedName=file.name;
-  $("fileInfo").textContent="📎 "+attachedName+" (click + to replace)";
+  $("fileInfo").textContent="📎 "+attachedName+" (ready to send)";
   $("fileInfo").classList.remove("hidden");
   $("status").textContent="File ready. Send your message to include it.";
  }catch(err){
   $("status").textContent="Could not read this file.";
  }
+
  e.target.value="";
 };
 
@@ -693,14 +1056,65 @@ document.querySelectorAll(".suggestion").forEach(btn=>{
  };
 });
 
-renderHistory();
+/* ACCOUNT EVENTS */
+$("accountBtn").onclick=openAuth;
+$("authClose").onclick=closeAuth;
+$("showLogin").onclick=()=>setAuthMode("login");
+$("showSignup").onclick=()=>setAuthMode("signup");
+$("authSubmit").onclick=submitAuth;
+$("logoutBtn").onclick=logout;
 
-if(chats.length){
- const latest=[...chats].sort((a,b)=>b.updated-a.updated)[0];
- openChat(latest.id);
-}else{
- newChat();
+$("guestBtn").onclick=()=>{
+ localStorage.setItem("dripscallion_guest_choice","yes");
+ closeAuth();
+
+ if(!currentUser){
+  applyGuest();
+ }
+};
+
+$("authOverlay").addEventListener("click",e=>{
+ if(e.target===$("authOverlay"))closeAuth();
+});
+
+$("authPassword").addEventListener("keydown",e=>{
+ if(e.key==="Enter")submitAuth();
+});
+
+$("authEmail").addEventListener("keydown",e=>{
+ if(e.key==="Enter")$("authPassword").focus();
+});
+
+/* START APP */
+async function startApp(){
+ renderHistory();
+
+ try{
+  const {data,error}=await supabaseClient.auth.getSession();
+
+  if(error)throw error;
+
+  if(data.session && data.session.user){
+   await applyAccount(data.session.user);
+  }else{
+   applyGuest();
+
+   const choseGuest =
+    localStorage.getItem("dripscallion_guest_choice");
+
+   if(!choseGuest){
+    openAuth();
+   }
+  }
+ }catch(error){
+  console.error("Startup error:",error);
+  applyGuest();
+  $("status").textContent="Using Guest Mode. Account connection is unavailable.";
+ }
 }
+
+updateAccountButton();
+startApp();
 </script>
 </body>
 </html>
