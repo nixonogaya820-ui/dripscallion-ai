@@ -37,12 +37,11 @@ export default {
       );
 
       return Response.json(result, { headers: corsHeaders });
-
     } catch (error) {
       return Response.json(
-        { error: "AI request failed. Please try again." },
+        {
+          error: error.message || "AI request failed"
+        },
         { status: 500, headers: corsHeaders }
       );
     }
-  }
-};
