@@ -46,6 +46,7 @@
       <div class="quick-tools">
         <button class="tool-button" id="attachButton" type="button">＋ Attach file</button>
         <button class="tool-button" id="imageToolButton" type="button">▧ Create image</button>
+        <button class="tool-button" id="editPhotoButton" type="button">✎ Edit photo</button>
         <button class="tool-button" id="pdfToolButton" type="button">▤ Study PDF</button>
         <button class="tool-button" id="creationsButton" type="button">▣ My creations</button>
         <input id="fileInput" type="file" hidden multiple accept="image/jpeg,image/png,image/webp,.pdf,.docx,.txt,.md,.csv,.xlsx,.xls,.xlsm,.xlsb,.et,.odt,.ods,.html,.htm,.xml,.numbers">
@@ -63,6 +64,30 @@
 
 <!-- IMAGE GENERATOR MODAL -->
 <div class="modal-backdrop" id="imageModal"><div class="modal"><div class="modal-close-row"><h2>Create an image</h2><button class="modal-close" data-close="imageModal">×</button></div><p>Describe the image you want. FLUX will generate an image from your description.</p><textarea id="imagePrompt" maxlength="2048" placeholder="Example: A realistic cinematic photo of Nairobi at sunset..."></textarea><button class="modal-button" id="generateImageButton">Generate image</button><div class="modal-status" id="imageStatus" aria-live="polite"></div><div class="modal-preview" id="imageResult"><img id="generatedImage" alt="AI generated image"><a class="download-link" id="downloadImage" href="#" download="dripscallion-image.jpg">Download image</a></div></div></div>
+
+<!-- AI PHOTO EDITOR MODAL -->
+<div class="modal-backdrop" id="editPhotoModal">
+  <div class="modal">
+    <div class="modal-close-row">
+      <h2>AI Photo Editor</h2>
+      <button class="modal-close" data-close="editPhotoModal">×</button>
+    </div>
+    <p>Upload a photo and describe exactly how you want it edited.</p>
+    <input type="file" id="editPhotoInput" accept="image/jpeg,image/png,image/webp">
+    <div class="modal-preview" id="editPhotoOriginalPreview">
+      <p>Original photo</p>
+      <img id="editPhotoOriginal" alt="Original photo preview">
+    </div>
+    <textarea id="editPhotoPrompt" maxlength="2000" placeholder="Example: Make this look like a professional DSLR photoshoot. Keep my face, identity, clothes and background unchanged."></textarea>
+    <button class="modal-button" id="editPhotoRunButton">Edit photo</button>
+    <div class="modal-status" id="editPhotoStatus" aria-live="polite"></div>
+    <div class="modal-preview" id="editPhotoResult">
+      <p>Edited photo</p>
+      <img id="editedPhotoImage" alt="AI edited photo">
+      <a class="download-link" id="downloadEditedPhoto" href="#" download="dripscallion-edited-photo.jpg">Download edited photo</a>
+    </div>
+  </div>
+</div>
 
 <!-- PDF CREATOR MODAL -->
 <div class="modal-backdrop" id="pdfModal"><div class="modal"><div class="modal-close-row"><h2>Student PDF Creator</h2><button class="modal-close" data-close="pdfModal">×</button></div><p>Create notes, revision questions, quizzes or study guides for any subject and learning level.</p><textarea id="pdfPrompt" maxlength="8000" placeholder="Example: Create university-level biology notes about cell division, with examples and 15 revision questions with answers."></textarea><button class="modal-button" id="createPdfButton">Create and download PDF</button><div class="modal-status" id="pdfStatus" aria-live="polite"></div><pre class="pdf-preview" id="pdfPreview"></pre></div></div>
@@ -581,8 +606,6 @@ async function processAttachments(files, userQuestion) {
   const images = files.filter(isImageFile);
   const documents = files.filter(file => !isImageFile(file));
 
-  // Send images one at a time so several attachments do not exceed
-  // the Worker's request-size limit after Base64 encoding.
   for (const imageFile of images) {
     const imageData = await fileToDataURL(imageFile);
     const vision = await postJSON("/api/vision", {
@@ -847,6 +870,164 @@ async function generateImage() {
 }
 $("generateImageButton").addEventListener("click", generateImage);
 
+/* AI PHOTO EDITOR */
+$("editPhotoButton").addEventListener("click", () => {
+  $("editPhotoInput").value = "";
+  $("editPhotoPrompt").value = "";
+  $("editPhotoStatus").textContent = "";
+  $("editPhotoOriginalPreview").style.display = "none";
+  $("editPhotoResult").style.display = "none";
+  $("editPhotoOriginal").removeAttribute("src");
+  $("editedPhotoImage").removeAttribute("src");
+  $("downloadEditedPhoto").removeAttribute("href");
+  openModal("editPhotoModal");
+});
+
+$("editPhotoInput").addEventListener("change", async () => {
+  const file = $("editPhotoInput").files?.[0];
+  $("editPhotoResult").style.display = "none";
+  $("editPhotoStatus").textContent = "";
+
+  if (!file) {
+    $("editPhotoOriginalPreview").style.display = "none";
+    return;
+  }
+
+  const acceptedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!acceptedTypes.includes(file.type)) {
+    $("editPhotoStatus").textContent = "Please select a JPEG, PNG or WebP image.";
+    $("editPhotoInput").value = "";
+    $("editPhotoOriginalPreview").style.display = "none";
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    $("editPhotoStatus").textContent = "This photo is too large. Please choose a photo under 5 MB.";
+    $("editPhotoInput").value = "";
+    $("editPhotoOriginalPreview").style.display = "none";
+    return;
+  }
+
+  try {
+    $("editPhotoOriginal").src = await fileToDataURL(file);
+    $("editPhotoOriginalPreview").style.display = "block";
+    $("editPhotoStatus").textContent = "Photo ready. Describe the edit you want.";
+  } catch (error) {
+    $("editPhotoStatus").textContent = error.message;
+  }
+});
+
+/* Resize while keeping the original aspect ratio */
+async function resizePhotoForEditing(file) {
+  const image = new Image();
+  const objectURL = URL.createObjectURL(file);
+
+  try {
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("Could not open this photo."));
+      image.src = objectURL;
+    });
+
+    const maxDimension = 512;
+    const scale = Math.min(
+      1,
+      maxDimension / image.naturalWidth,
+      maxDimension / image.naturalHeight
+    );
+
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Could not prepare the photo for editing.");
+
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL("image/jpeg", 0.88);
+  } finally {
+    URL.revokeObjectURL(objectURL);
+  }
+}
+
+async function editPhoto() {
+  const file = $("editPhotoInput").files?.[0];
+  const prompt = $("editPhotoPrompt").value.trim();
+  const button = $("editPhotoRunButton");
+
+  if (!file) {
+    $("editPhotoStatus").textContent = "Choose a photo first.";
+    return;
+  }
+
+  if (!prompt) {
+    $("editPhotoStatus").textContent = "Describe how you want the photo edited.";
+    $("editPhotoPrompt").focus();
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    $("editPhotoStatus").textContent = "Please choose a photo under 5 MB.";
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Editing...";
+  $("editPhotoStatus").textContent = "Preparing your photo for AI editing...";
+  $("editPhotoResult").style.display = "none";
+
+  try {
+    const resizedImage = await resizePhotoForEditing(file);
+
+    $("editPhotoStatus").textContent = "AI is editing your photo. Please wait...";
+
+    const data = await postJSON("/api/image/edit", {
+      image: resizedImage,
+      prompt
+    });
+
+    const editedImage = data.image || data.dataURI;
+
+    if (!editedImage || !String(editedImage).startsWith("data:image/")) {
+      throw new Error("The photo editor did not return a displayable image.");
+    }
+
+    $("editedPhotoImage").src = editedImage;
+
+    const filename = `dripscallion-edited-${Date.now()}.jpg`;
+    $("downloadEditedPhoto").href = editedImage;
+    $("downloadEditedPhoto").download = filename;
+    $("editPhotoResult").style.display = "block";
+
+    try {
+      await saveCreation({
+        id: makeId(),
+        ownerId: currentUser?.id || "guest",
+        prompt: "Photo edit: " + prompt,
+        image: editedImage,
+        filename,
+        createdAt: Date.now()
+      });
+
+      $("editPhotoStatus").textContent = "Photo edited and saved in My Creations on this device.";
+    } catch (storageError) {
+      console.warn("Edited photo was created but could not be saved:", storageError);
+      $("editPhotoStatus").textContent = "Photo edited. Download it now; local storage was unavailable.";
+    }
+  } catch (error) {
+    console.error("Photo editing failed:", error);
+    $("editPhotoStatus").textContent = "Photo editing failed: " + error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Edit photo";
+  }
+}
+
+$("editPhotoRunButton").addEventListener("click", editPhoto);
+
 async function renderCreations() {
   const grid = $("creationGrid");
   grid.innerHTML = "";
@@ -1099,7 +1280,6 @@ $("sendButton").addEventListener("contextmenu", event => {
 
 /* SESSION INITIALISATION: preserve Supabase's existing auth session */
 supabaseClient.auth.onAuthStateChange((_event, session) => {
-  // Defer Supabase queries outside the auth callback to avoid auth-lock issues.
   setTimeout(() => applySession(session?.user || null), 0);
 });
 
