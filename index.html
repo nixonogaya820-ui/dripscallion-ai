@@ -37,6 +37,48 @@
 .photo-help{font-size:11px;color:var(--muted);line-height:1.5;margin:7px 0}
 @media(max-width:420px){.photo-studio-options{grid-template-columns:1fr 1fr}.photo-preset{font-size:11px;padding:9px 7px}}
 
+
+/* ChatGPT-like composer, plus menu and inline media cards */
+.composer-area{position:relative;padding-left:clamp(12px,4vw,34px);padding-right:clamp(12px,4vw,34px)}
+.messages{max-width:980px;padding-left:clamp(14px,4vw,42px);padding-right:clamp(14px,4vw,42px)}
+.quick-tools{display:none;position:absolute;left:clamp(12px,4vw,34px);bottom:calc(100% - 2px);z-index:25;width:min(290px,calc(100vw - 28px));margin:0;padding:8px;background:#171e34;border:1px solid #343c59;border-radius:15px;box-shadow:0 16px 45px #0009;flex-direction:column;gap:4px}
+.quick-tools.open{display:flex}.quick-tools .tool-button{width:100%;text-align:left;padding:11px 12px;border:0;background:transparent;border-radius:9px;font-size:12px}.quick-tools .tool-button:hover{background:#252d48}
+.composer{max-width:980px;border-radius:23px;padding:9px 10px;align-items:flex-end;gap:8px;box-shadow:0 8px 28px #0003}
+.plus-button{width:39px;height:39px;flex-shrink:0;border:1px solid #414a68;border-radius:50%;background:#222a43;color:#fff;font-size:25px;line-height:1;display:grid;place-items:center;transition:transform .18s,background .18s}
+.plus-button.active{transform:rotate(45deg);background:#3b3268;border-color:#7763d1}
+#messageInput{padding:7px 3px;min-height:39px}
+.message-media{margin-top:10px;max-width:min(100%,560px)}
+.message-media img{display:block;width:auto;max-width:100%;max-height:440px;object-fit:contain;border-radius:13px;border:1px solid #343c59;background:#090d19}
+.message-media .media-caption{font-size:11px;color:#aeb5cc;margin-top:7px;overflow-wrap:anywhere}
+.media-actions{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.media-actions a,.media-actions button{font-size:11px;color:#d9d2ff;text-decoration:none;border:1px solid #3b4260;background:#171e34;border-radius:8px;padding:7px 10px;cursor:pointer}
+.message-attachments{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.message-file{display:flex;align-items:center;gap:9px;max-width:260px;padding:8px 10px;border:1px solid #3a4260;border-radius:12px;background:#171e34;font-size:11px;color:#dce0f0}
+.message-file img{width:48px;height:48px;object-fit:cover;border-radius:8px}
+.message-file .file-meta{min-width:0}.message-file strong{display:block;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.message-file small{color:#929bb5}
+.inline-progress{display:flex;align-items:center;gap:10px;color:#b9bfd3;font-size:12px;padding:12px 0}
+.progress-dot{width:9px;height:9px;border-radius:50%;background:#a18aff;box-shadow:0 0 0 5px #a18aff22;animation:dripPulse 1.2s infinite}
+@keyframes dripPulse{50%{opacity:.35;transform:scale(.8)}}
+.message.assistant .bubble{max-width:100%;width:min(100%,760px)}
+@media(max-width:760px){.composer-area{padding:8px 12px 13px}.quick-tools{left:12px}.message.assistant .bubble{width:100%}.message.user .bubble{max-width:88%}.message-media img{max-height:360px}}
+/* Refined GPT-style attachment tray and tools popover */
+.attachment-preview{max-width:980px;display:flex;align-items:flex-start;gap:10px;padding:2px 0 9px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin}
+.attachment-chip{position:relative;display:flex;flex:0 0 auto;align-items:center;gap:8px;width:178px;min-height:76px;max-width:178px;padding:8px 30px 8px 8px;border:1px solid #39425f;border-radius:13px;background:#171e34;color:#e8eaff;font-size:11px}
+.attachment-chip img{width:58px;height:58px;flex:0 0 58px;object-fit:cover;border-radius:8px;background:#0b1020}
+.attachment-chip span{display:block;min-width:0;white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35}
+.attachment-chip button{position:absolute;right:6px;top:5px;width:21px;height:21px;border-radius:50%;background:#303852;color:#fff;font-size:15px;line-height:1}
+.quick-tools{width:min(330px,calc(100vw - 28px));padding:10px;border-radius:17px;gap:3px;max-height:min(72vh,520px);overflow-y:auto}
+.tools-menu-heading{font-size:13px;font-weight:700;color:#f5f3ff;padding:7px 10px 9px}
+.tools-menu-label{font-size:9px;font-weight:800;letter-spacing:1.1px;color:#858eaa;padding:8px 10px 4px}
+.tools-menu-divider{height:1px;background:#2b3450;margin:6px 3px}
+.quick-tools .tool-button{display:flex;align-items:center;gap:11px;padding:10px;border-radius:11px;text-align:left;white-space:normal}
+.quick-tools .tool-button>span:last-child{display:flex;flex-direction:column;gap:3px;min-width:0}
+.quick-tools .tool-button strong{font-size:12px;font-weight:600;color:#f0f1ff}
+.quick-tools .tool-button small{font-size:10px;font-weight:400;color:#929bb5}
+.tool-icon{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border:1px solid #39425f;border-radius:10px;background:#222a43;color:#d8ceff;font-size:18px}
+.composer{max-width:980px;min-height:58px}
+@media(max-width:600px){.attachment-chip{width:150px;max-width:150px;min-height:68px}.attachment-chip img{width:48px;height:48px;flex-basis:48px}.quick-tools{left:8px;bottom:calc(100% + 2px)}}
+
 </style>
 </head>
 <body>
@@ -56,17 +98,21 @@
     <header class="topbar"><button class="menu-button" id="menuButton">☰</button><div class="top-title">DRIPSCALLION AI</div><select class="mode-select" id="modeSelect" aria-label="Chat mode"><option value="general">General AI</option><option value="study">Study Assistant</option><option value="helper">Conversation Helper</option></select></header>
     <section class="chat-area" id="chatArea"><div class="messages" id="messages"></div></section>
     <footer class="composer-area">
-      <div class="quick-tools">
-        <button class="tool-button" id="attachButton" type="button">＋ Attach file</button>
-        <button class="tool-button" id="imageToolButton" type="button">▧ Create image</button>
-        <button class="tool-button" id="editPhotoButton" type="button">✎ Edit photo</button>
-        <button class="tool-button" id="pdfToolButton" type="button">▤ Study PDF</button>
-        <button class="tool-button" id="creationsButton" type="button">▣ My creations</button>
+      <div class="quick-tools" id="plusMenu" role="menu" aria-label="Add to chat">
+        <div class="tools-menu-heading">Add to your chat</div>
+        <button class="tool-button" id="attachButton" type="button"><span class="tool-icon">＋</span><span><strong>Photos & files</strong><small>Upload images or documents</small></span></button>
+        <div class="tools-menu-divider"></div>
+        <div class="tools-menu-label">CREATE</div>
+        <button class="tool-button" id="imageToolButton" type="button"><span class="tool-icon">▧</span><span><strong>Create an image</strong><small>Generate an image from a prompt</small></span></button>
+        <button class="tool-button" id="editPhotoButton" type="button"><span class="tool-icon">✎</span><span><strong>Photo Studio</strong><small>Edit a photo with your instructions</small></span></button>
+        <button class="tool-button" id="pdfToolButton" type="button"><span class="tool-icon">▤</span><span><strong>Study PDF</strong><small>Create a study document</small></span></button>
+        <div class="tools-menu-divider"></div>
+        <button class="tool-button" id="creationsButton" type="button"><span class="tool-icon">▣</span><span><strong>My creations</strong><small>View and download saved images</small></span></button>
         <input id="fileInput" type="file" hidden multiple accept="image/jpeg,image/png,image/webp,.pdf,.docx,.txt,.md,.csv,.xlsx,.xls,.xlsm,.xlsb,.et,.odt,.ods,.html,.htm,.xml,.numbers">
       </div>
       <div class="attachment-preview" id="attachmentPreview"></div>
-      <div class="composer"><textarea id="messageInput" rows="1" placeholder="Message DRIPSCALLION AI..."></textarea><button class="send-button" id="sendButton" title="Send">↑</button></div>
-      <div class="composer-note">Attachments are analysed for this reply; original files are not stored in cloud history yet.</div>
+      <div class="composer"><button class="plus-button" id="plusButton" type="button" aria-label="Add files and tools" aria-expanded="false">＋</button><textarea id="messageInput" rows="1" placeholder="Message DRIPSCALLION AI..."></textarea><button class="send-button" id="sendButton" title="Send">↑</button></div>
+      <div class="composer-note">Add files or tools with ＋ · Enter to send · Shift + Enter for a new line</div>
       <div class="save-status" id="saveStatus" aria-live="polite"></div>
     </footer>
   </main>
@@ -479,6 +525,35 @@ function showWelcome() {
     </div>`;
 }
 
+function ensureCurrentChat(title = "New chat") {
+  let chat = getCurrentChat();
+  if (!chat) {
+    chat = { id: makeId(), title, messages: [], created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    chats.unshift(chat);
+    currentChatId = chat.id;
+  }
+  return chat;
+}
+
+function addInlineProgress(label) {
+  const chat = ensureCurrentChat(label);
+  const item = { role: "assistant", content: label, progress: true, id: makeId() };
+  chat.messages.push(item);
+  renderChatList();
+  renderMessages();
+  saveChat(chat);
+  return { chat, item };
+}
+
+function updateInlineProgress(chat, item, text, image, filename) {
+  item.content = text;
+  item.progress = false;
+  if (image) { item.image = image; item.filename = filename || "dripscallion-image.jpg"; }
+  chat.updated_at = new Date().toISOString();
+  renderMessages();
+  saveChat(chat);
+}
+
 function renderMessages() {
   const area = $("messages");
   const chat = getCurrentChat();
@@ -497,7 +572,33 @@ function renderMessages() {
     const content = document.createElement("div");
     content.className = "bubble";
     const codeBlocks = [];
-    content.innerHTML = messageHTML(message.content, codeBlocks);
+    content.innerHTML = message.progress
+      ? `<div class="inline-progress"><span class="progress-dot"></span><span>${escapeHTML(message.content || "Working...")}</span></div>`
+      : messageHTML(message.content, codeBlocks);
+
+    if (Array.isArray(message.attachments) && message.attachments.length) {
+      const filesWrap = document.createElement("div");
+      filesWrap.className = "message-attachments";
+      message.attachments.forEach(file => {
+        const card = document.createElement("div"); card.className = "message-file";
+        if (file.image) { const img = document.createElement("img"); img.src = file.image; img.alt = file.name || "Attached image"; card.appendChild(img); }
+        const meta = document.createElement("div"); meta.className = "file-meta";
+        const name = document.createElement("strong"); name.textContent = file.name || "Attachment";
+        const sub = document.createElement("small"); sub.textContent = file.type || "File";
+        meta.append(name, sub); card.appendChild(meta); filesWrap.appendChild(card);
+      });
+      content.appendChild(filesWrap);
+    }
+    if (message.image) {
+      const media = document.createElement("div"); media.className = "message-media";
+      const img = document.createElement("img"); img.src = message.image; img.alt = message.filename || "AI image result"; img.loading = "lazy";
+      const caption = document.createElement("div"); caption.className = "media-caption"; caption.textContent = message.filename || "Created with DRIPSCALLION AI";
+      const actions = document.createElement("div"); actions.className = "media-actions";
+      const download = document.createElement("button"); download.type = "button"; download.textContent = "↓ Download";
+      download.onclick = () => downloadDataURL(message.image, message.filename || "dripscallion-image.jpg");
+      const open = document.createElement("a"); open.href = message.image; open.target = "_blank"; open.rel = "noopener"; open.textContent = "Open full size";
+      actions.append(download, open); media.append(img, caption, actions); content.appendChild(media);
+    }
 
     content.querySelectorAll("[data-copy-code]").forEach(button => {
       button.addEventListener("click", async () => {
@@ -595,21 +696,29 @@ function isTextFile(file) {
 function renderPendingFiles() {
   const wrap = $("attachmentPreview");
   wrap.innerHTML = "";
+  wrap.setAttribute("aria-label", pendingFiles.length ? `${pendingFiles.length} attachment(s) ready to send` : "No attachments selected");
   pendingFiles.forEach((file, index) => {
     const chip = document.createElement("div");
     chip.className = "attachment-chip";
     if (isImageFile(file)) {
       const thumb = document.createElement("img");
       thumb.src = URL.createObjectURL(file);
-      thumb.alt = "Attachment preview";
+      thumb.alt = `Preview of ${file.name}`;
       chip.appendChild(thumb);
+    } else {
+      const icon = document.createElement("div");
+      icon.className = "tool-icon";
+      icon.textContent = extensionOf(file.name).replace(".", "").slice(0, 4).toUpperCase() || "FILE";
+      chip.appendChild(icon);
     }
     const name = document.createElement("span");
     name.textContent = file.name;
+    name.title = file.name;
     const remove = document.createElement("button");
     remove.type = "button";
     remove.textContent = "×";
     remove.title = "Remove attachment";
+    remove.setAttribute("aria-label", `Remove ${file.name}`);
     remove.onclick = () => {
       pendingFiles.splice(index, 1);
       renderPendingFiles();
@@ -705,9 +814,18 @@ async function sendMessage() {
     (item.role === "user" ? "User: " : "Assistant: ") + item.content
   ).join("\n\n");
 
+  const attachmentCards = [];
+  for (const file of files) {
+    attachmentCards.push({
+      name: file.name,
+      type: isImageFile(file) ? "Image" : (file.type || extensionOf(file.name).replace(".", "").toUpperCase() || "File"),
+      ...(isImageFile(file) ? { image: await fileToDataURL(file) } : {})
+    });
+  }
   chat.messages.push({
     role: "user",
-    content: displayText + attachmentLabel
+    content: displayText + attachmentLabel,
+    ...(attachmentCards.length ? { attachments: attachmentCards } : {})
   });
   if (chat.messages.length === 1) chat.title = makeTitle(displayText);
 
@@ -778,6 +896,23 @@ Respond naturally and directly. Keep the answer concise unless detailed explanat
 }
 
 /* FILE ATTACHMENTS */
+$("plusButton").addEventListener("click", () => {
+  const menu = $("plusMenu");
+  const open = menu.classList.toggle("open");
+  $("plusButton").classList.toggle("active", open);
+  $("plusButton").setAttribute("aria-expanded", String(open));
+});
+function closePlusMenu() {
+  $("plusMenu").classList.remove("open");
+  $("plusButton").classList.remove("active");
+  $("plusButton").setAttribute("aria-expanded", "false");
+}
+$("plusMenu").addEventListener("click", event => {
+  if (event.target.closest("button")) closePlusMenu();
+});
+document.addEventListener("click", event => {
+  if (!event.target.closest(".composer-area")) closePlusMenu();
+});
 $("attachButton").addEventListener("click", () => $("fileInput").click());
 $("fileInput").addEventListener("change", event => {
   addSelectedFiles(event.target.files);
@@ -870,6 +1005,8 @@ async function generateImage() {
     return;
   }
   const button = $("generateImageButton");
+  const progress = addInlineProgress("Creating your image in this chat...");
+  closeModal("imageModal");
   button.disabled = true;
   button.textContent = "Generating...";
   $("imageStatus").textContent = "FLUX is creating your image. This may take a moment...";
@@ -886,6 +1023,7 @@ async function generateImage() {
     $("imageResult").style.display = "block";
     const filename = `dripscallion-${Date.now()}.jpg`;
     $("downloadImage").download = filename;
+    updateInlineProgress(progress.chat, progress.item, "Image created successfully.", image, filename);
 
     try {
       await saveCreation({
@@ -904,6 +1042,7 @@ async function generateImage() {
   } catch (error) {
     console.error("Image generation failed:", error);
     $("imageStatus").textContent = "Image generation failed: " + error.message;
+    updateInlineProgress(progress.chat, progress.item, "Image generation failed: " + error.message);
   } finally {
     button.disabled = false;
     button.textContent = "Generate image";
@@ -1084,6 +1223,18 @@ async function editPhoto() {
   }
 
   const finalPrompt = buildPhotoEditingPrompt();
+  const originalPreview = await fileToDataURL(file);
+  const photoChat = ensureCurrentChat("Photo Studio");
+  photoChat.messages.push({
+    role: "user",
+    content: "Please edit this photo using my selected Photo Studio settings.",
+    attachments: [{ name: file.name, type: "Photo to edit", image: originalPreview }]
+  });
+  renderChatList();
+  renderMessages();
+  saveChat(photoChat);
+  const progress = addInlineProgress("Preparing your photo for editing in this chat...");
+  closeModal("editPhotoModal");
   button.disabled = true;
   button.textContent = "Editing...";
   $("editPhotoStatus").textContent = "Preparing your photo for AI editing...";
@@ -1100,6 +1251,7 @@ async function editPhoto() {
 
     $("editedPhotoImage").src = editedImage;
     const filename = `dripscallion-edited-${Date.now()}.jpg`;
+    updateInlineProgress(progress.chat, progress.item, "Your edited photo is ready.", editedImage, filename);
     $("downloadEditedPhoto").href = editedImage;
     $("downloadEditedPhoto").download = filename;
     $("editPhotoResult").style.display = "block";
@@ -1121,6 +1273,7 @@ async function editPhoto() {
   } catch (error) {
     console.error("Photo editing failed:", error);
     $("editPhotoStatus").textContent = "Photo editing failed: " + error.message;
+    updateInlineProgress(progress.chat, progress.item, "Photo editing failed: " + error.message);
   } finally {
     button.disabled = false;
     button.textContent = "Edit photo";
