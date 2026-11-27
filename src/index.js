@@ -10,67 +10,47 @@ You are DRIPSCALLION AI, an intelligent, friendly and natural AI assistant.
 
 Your founder is Job Muuo, known as Drips, from Machakos, Kenya.
 Your tagline is "FROM MACHAKOS TO THE WORLD."
-The founder created the DRIPSCALLION AI platform, not the third-party AI models.
+The founder created the DRIPSCALLION AI platform, not the underlying third-party AI models.
 
 LANGUAGE:
 - Detect the main language of the latest user message.
 - Reply in that language only.
-- English means English only.
-- Kiswahili means Kiswahili only.
-- Kenyan Sheng means natural Kenyan Sheng.
+- Use English for English, Kiswahili for Kiswahili and natural Kenyan Sheng for Sheng.
 - Do not randomly mix languages.
-- Use another language only when the user requests translation or bilingual output.
+- Switch when the user switches languages or requests translation.
 
 PERSONALITY:
-- Be intelligent, natural, friendly, respectful and accurate.
+- Be intelligent, friendly, natural and respectful.
 - Keep ordinary answers concise.
-- Do not give long descriptions unless requested.
-- Understand short instructions using the conversation context.
-- Ask a question only when essential information is missing.
-- Never invent facts or claim an action succeeded if it did not.
+- Avoid unnecessary long descriptions.
+- Understand short instructions using conversation context.
+- Ask questions only when essential.
+- Never invent facts or claim an action succeeded when it did not.
 
 CODING:
-- Put code inside properly labelled code blocks.
-- Keep code separate from explanations.
-- Use complete working code when the user requests a full replacement.
-- Do not replace functioning systems unnecessarily.
+- Put source code inside properly labelled code blocks.
+- Provide Copy-ready code.
+- Provide complete replacement files when requested.
+- Explain errors clearly.
 
 EDUCATION:
-- Support all subjects and learning levels, from primary school to college, university and professional learning.
+- Support all subjects from primary school to secondary school, college, university and professional learning.
 - Explain concepts clearly.
-- Generate practice questions, quizzes, revision materials and answer keys when requested.
-- Do not claim generated work is an official examination or marking scheme.
+- Generate notes, revision questions, quizzes and practice answers.
+- Never misrepresent practice material as official examinations.
 
 CREATIVITY:
-- Help with image prompts, writing, design and image understanding.
-- Follow the user's instructions carefully.
-- Do not claim an image has been edited or generated unless the image tool returns a successful result.
+- Support image prompts, image understanding and image editing.
+- Follow the user's visual instructions carefully.
+- Never claim an image was created or edited unless the image service succeeds.
 
-Always be honest about limitations.
+Always be accurate and honest about limitations.
 `;
 
-const MAX_PROMPT = 12000;
-const MAX_IMAGE_DATA = 7 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 12 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
-
-function getText(result) {
-  const content =
-    result?.choices?.[0]?.message?.content ??
-    result?.response ??
-    result?.text ??
-    "";
-
-  if (typeof content === "string") return content;
-
-  if (Array.isArray(content)) {
-    return content
-      .map(part => typeof part === "string" ? part : part?.text || "")
-      .join("\n")
-      .trim();
-  }
-
-  return "";
-}
+const MAX_PROMPT_LENGTH = 16000;
 
 function jsonResponse(data, status, cors) {
   return new Response(JSON.stringify(data), {
@@ -83,30 +63,93 @@ function jsonResponse(data, status, cors) {
   });
 }
 
-function decodeDataUrl(dataUrl) {
+function getText(result) {
+  const content =
+    result?.choices?.[0]?.message?.content ??
+    result?.response ??
+    result?.text ??
+    "";
+
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map(part =>
+        typeof part === "string" ? part : part?.text || ""
+      )
+      .join("\n")
+      .trim();
+  }
+
+  return "";
+}
+
+async function readRequestBody(request) {
+  const contentLength = Number(
+    request.headers.get("Content-Length") || 0
+  );
+
+  if (contentLength > MAX_REQUEST_BYTES) {
+    throw new Error("REQUEST_TOO_LARGE");
+  }
+
+  const raw = await request.text();
+
+  if (
+    new TextEncoder().encode(raw).byteLength >
+    MAX_REQUEST_BYTES
+  ) {
+    throw new Error("REQUEST_TOO_LARGE");
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error("INVALID_JSON");
+  }
+}
+
+function decodeDataUrl(dataUrl, maxBytes = MAX_IMAGE_BYTES) {
   if (typeof dataUrl !== "string") {
     throw new Error("File data is missing.");
   }
 
   const match = dataUrl.match(
-    /^data:([^;,]+);base64,([A-Za-z0-9+/=\r\n]+)$/
+    /^data:([^;,]+);base64,([A-Za-z0-9+/=\r\n]+)$/i
   );
 
   if (!match) {
-    throw new Error("Invalid file format.");
+    throw new Error("Invalid Base64 file format.");
   }
 
   const mimeType = match[1].toLowerCase();
   const base64 = match[2].replace(/\s/g, "");
 
-  const binary = atob(base64);
+  if (base64.length > Math.ceil(maxBytes * 4 / 3) + 8) {
+    throw new Error("File is too large.");
+  }
+
+  let binary;
+
+  try {
+    binary = atob(base64);
+  } catch {
+    throw new Error("Invalid Base64 data.");
+  }
+
+  if (binary.length > maxBytes) {
+    throw new Error("File is too large.");
+  }
+
   const bytes = new Uint8Array(binary.length);
 
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
 
-  return { mimeType, bytes };
+  return { mimeType, base64, bytes };
 }
 
 function bytesToBase64(bytes) {
@@ -114,88 +157,170 @@ function bytesToBase64(bytes) {
   const chunkSize = 0x8000;
 
   for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize);
-    binary += String.fromCharCode(...chunk);
+    binary += String.fromCharCode(
+      ...bytes.subarray(i, i + chunkSize)
+    );
   }
 
   return btoa(binary);
 }
 
-async function imageValueToDataUrl(value) {
+function fileExtension(name) {
+  const value = String(name || "").toLowerCase();
+  const index = value.lastIndexOf(".");
+
+  return index >= 0 ? value.slice(index) : "";
+}
+
+function imageToDataUrl(value) {
   if (typeof value !== "string" || !value.trim()) {
-    throw new Error("The image service returned no image.");
+    throw new Error("The image model returned no image.");
   }
 
   if (value.startsWith("data:image/")) {
     return value;
   }
 
-  if (/^https:\/\/|^http:\/\//i.test(value)) {
-    const response = await fetch(value);
-
-    if (!response.ok) {
-      throw new Error("Could not retrieve the edited image.");
-    }
-
-    const mimeType =
-      response.headers.get("content-type")?.split(";")[0] ||
-      "image/jpeg";
-
-    if (!mimeType.startsWith("image/")) {
-      throw new Error("The image service returned an invalid file.");
-    }
-
-    const bytes = new Uint8Array(await response.arrayBuffer());
-
-    return `data:${mimeType};base64,${bytesToBase64(bytes)}`;
-  }
-
   return `data:image/jpeg;base64,${value}`;
 }
 
-function isAllowedImageData(value) {
-  return (
-    typeof value === "string" &&
-    /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(value) &&
-    value.length <= MAX_IMAGE_DATA
-  );
+function isValidImageData(value) {
+  if (
+    typeof value !== "string" ||
+    !/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(value)
+  ) {
+    return false;
+  }
+
+  try {
+    decodeDataUrl(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-function getFileExtension(name) {
-  const cleanName = String(name || "").toLowerCase();
-  const index = cleanName.lastIndexOf(".");
-  return index >= 0 ? cleanName.slice(index) : "";
+async function getEditedImageDataUrl(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("The image editor returned no image.");
+  }
+
+  if (value.startsWith("data:image/")) {
+    return value;
+  }
+
+  if (!/^https:\/\//i.test(value)) {
+    return imageToDataUrl(value);
+  }
+
+  // Fetch the image URL returned by the trusted image model.
+  const response = await fetch(value);
+
+  if (!response.ok) {
+    throw new Error("Could not retrieve the edited image.");
+  }
+
+  const contentType = (
+    response.headers.get("Content-Type") || ""
+  ).split(";")[0].toLowerCase();
+
+  if (!contentType.startsWith("image/")) {
+    throw new Error("The image service returned an invalid file.");
+  }
+
+  const bytes = new Uint8Array(await response.arrayBuffer());
+
+  if (bytes.byteLength > 8 * 1024 * 1024) {
+    throw new Error("The edited image is too large.");
+  }
+
+  return `data:${contentType};base64,${bytesToBase64(bytes)}`;
+}
+
+function getAllowedDocumentExtensions() {
+  return [
+    ".pdf",
+    ".docx",
+    ".xlsx",
+    ".xls",
+    ".xlsm",
+    ".xlsb",
+    ".et",
+    ".odt",
+    ".ods",
+    ".csv",
+    ".html",
+    ".htm",
+    ".xml",
+    ".numbers"
+  ];
+}
+
+function decodeText(bytes) {
+  return new TextDecoder("utf-8", {
+    fatal: false
+  }).decode(bytes).trim();
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const origin = request.headers.get("Origin");
+    const requestOrigin = request.headers.get("Origin");
 
-    let allowedOrigin = url.origin;
-
-    try {
-      if (origin && new URL(origin).origin === url.origin) {
-        allowedOrigin = origin;
-      }
-    } catch {
-      allowedOrigin = url.origin;
-    }
+    // This API is intended to be called from the DRIPSCALLION AI website.
+    const originIsAllowed =
+      !requestOrigin || requestOrigin === url.origin;
 
     const cors = {
-      "Access-Control-Allow-Origin": allowedOrigin,
+      "Access-Control-Allow-Origin":
+        originIsAllowed
+          ? (requestOrigin || url.origin)
+          : "null",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers":
+        "Content-Type, Authorization",
       "Access-Control-Max-Age": "86400",
       "Vary": "Origin"
     };
 
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: cors });
+      return new Response(null, {
+        status: 204,
+        headers: cors
+      });
     }
 
-    if (url.pathname === "/") {
+    if (!originIsAllowed) {
+      return jsonResponse({
+        error: "Cross-origin requests are not allowed."
+      }, 403, cors);
+    }
+
+    // HEALTH CHECK
+    if (
+      url.pathname === "/api/health" &&
+      request.method === "GET"
+    ) {
+      return jsonResponse({
+        online: true,
+        assistant: "DRIPSCALLION AI",
+        features: {
+          chat: true,
+          imageGeneration: true,
+          imageUnderstanding: true,
+          documentReading: true,
+          studyContentGeneration: true,
+          imageEditing: env.ENABLE_PAID_IMAGE_EDITING === "true",
+          speechToText: true,
+          textToSpeech: true,
+          videoGeneration: false
+        }
+      }, 200, cors);
+    }
+
+    if (url.pathname === "/" && request.method === "GET") {
       return new Response("DRIPSCALLION AI is online!", {
+        status: 200,
         headers: {
           ...cors,
           "Content-Type": "text/plain; charset=utf-8"
@@ -203,41 +328,19 @@ export default {
       });
     }
 
-    if (url.pathname === "/api/health" && request.method === "GET") {
-      return jsonResponse({
-        online: true,
-        assistant: "DRIPSCALLION AI",
-        available: [
-          "chat",
-          "image-generation",
-          "image-editing",
-          "image-understanding",
-          "document-reading",
-          "pdf-content-generation",
-          "speech-to-text",
-          "text-to-speech"
-        ],
-        videoGeneration: false
-      }, 200, cors);
-    }
-
     if (!url.pathname.startsWith("/api/")) {
-      return jsonResponse({ error: "Route not found." }, 404, cors);
+      return jsonResponse({
+        error: "Route not found."
+      }, 404, cors);
     }
 
     if (request.method !== "POST") {
-      return jsonResponse({ error: "Method not allowed." }, 405, cors);
-    }
-
-    const contentLength = Number(request.headers.get("Content-Length") || 0);
-
-    if (contentLength > 12 * 1024 * 1024) {
       return jsonResponse({
-        error: "The request is too large. Please use a smaller file."
-      }, 413, cors);
+        error: "Method not allowed."
+      }, 405, cors);
     }
 
-    if (!env.AI) {
+    if (!env.AI || typeof env.AI.run !== "function") {
       return jsonResponse({
         error: "Cloudflare AI binding is not configured."
       }, 500, cors);
@@ -246,72 +349,81 @@ export default {
     let body;
 
     try {
-      body = await request.json();
-    } catch {
-      return jsonResponse({ error: "Invalid request data." }, 400, cors);
+      body = await readRequestBody(request);
+    } catch (error) {
+      if (error.message === "REQUEST_TOO_LARGE") {
+        return jsonResponse({
+          error: "Request is too large. Use a smaller file."
+        }, 413, cors);
+      }
+
+      return jsonResponse({
+        error: "Invalid JSON request."
+      }, 400, cors);
     }
 
     try {
-      // 1. GENERAL CHAT
+
+      // 1. GENERAL AI CHAT
       if (url.pathname === "/api/chat") {
         let messages = [];
 
         if (Array.isArray(body.messages)) {
-          if (body.messages.length > 40) {
+          if (
+            body.messages.length < 1 ||
+            body.messages.length > 40
+          ) {
             return jsonResponse({
-              error: "Please send a shorter conversation."
-            }, 413, cors);
+              error: "Send between 1 and 40 messages."
+            }, 400, cors);
           }
 
-          messages = body.messages.map(item => {
-            const role = item?.role;
-
-            if (role !== "user" && role !== "assistant") {
-              throw new Error("Invalid conversation role.");
-            }
-
+          for (const item of body.messages) {
             if (
-              typeof item?.content !== "string" ||
-              item.content.length > MAX_PROMPT
+              !item ||
+              !["user", "assistant"].includes(item.role) ||
+              typeof item.content !== "string" ||
+              !item.content.trim() ||
+              item.content.length > MAX_PROMPT_LENGTH
             ) {
-              throw new Error("A conversation message is invalid or too long.");
+              return jsonResponse({
+                error: "Invalid or oversized conversation message."
+              }, 400, cors);
             }
 
-            return {
-              role,
-              content: item.content
-            };
-          });
+            messages.push({
+              role: item.role,
+              content: item.content.trim()
+            });
+          }
         } else {
-          const message = body.message;
-
           if (
-            typeof message !== "string" ||
-            !message.trim()
+            typeof body.message !== "string" ||
+            !body.message.trim()
           ) {
             return jsonResponse({
               error: "Please enter a message."
             }, 400, cors);
           }
 
-          if (message.length > 50000) {
+          if (body.message.length > 50000) {
             return jsonResponse({
               error: "Message is too long."
             }, 413, cors);
           }
 
-          messages = [{ role: "user", content: message.trim() }];
-        }
-
-        if (!messages.length) {
-          return jsonResponse({
-            error: "No messages were provided."
-          }, 400, cors);
+          messages = [{
+            role: "user",
+            content: body.message.trim()
+          }];
         }
 
         const result = await env.AI.run(CHAT_MODEL, {
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "system",
+              content: SYSTEM_PROMPT
+            },
             ...messages
           ],
           max_tokens: 4096,
@@ -336,9 +448,12 @@ export default {
 
       // 2. TEXT-TO-IMAGE GENERATION
       if (url.pathname === "/api/image") {
-        const prompt = body.prompt;
+        const prompt =
+          typeof body.prompt === "string"
+            ? body.prompt.trim()
+            : "";
 
-        if (typeof prompt !== "string" || !prompt.trim()) {
+        if (!prompt) {
           return jsonResponse({
             error: "Describe the image you want to create."
           }, 400, cors);
@@ -350,9 +465,13 @@ export default {
           }, 413, cors);
         }
 
+        const steps = Number.isInteger(body.steps)
+          ? Math.min(8, Math.max(1, body.steps))
+          : 8;
+
         const result = await env.AI.run(IMAGE_MODEL, {
-          prompt: prompt.trim(),
-          steps: 8
+          prompt,
+          steps
         });
 
         if (!result?.image) {
@@ -361,20 +480,39 @@ export default {
           }, 502, cors);
         }
 
+        const image = imageToDataUrl(result.image);
+
         return jsonResponse({
-          image: `data:image/jpeg;base64,${result.image}`,
+          image,
+          dataURI: image,
           assistant: "DRIPSCALLION AI"
         }, 200, cors);
       }
 
       // 3. IMAGE EDITING
       if (url.pathname === "/api/image/edit") {
-        const prompt = body.prompt;
-        const inputImage = body.image || body.inputImage;
 
-        if (typeof prompt !== "string" || !prompt.trim()) {
+        // Keep the paid model switched off until explicitly enabled
+        // in the Cloudflare Worker environment.
+        if (env.ENABLE_PAID_IMAGE_EDITING !== "true") {
           return jsonResponse({
-            error: "Describe the changes you want to make."
+            error: "Image editing is temporarily disabled. The owner must enable the paid image-editing service first."
+          }, 403, cors);
+        }
+
+        const prompt =
+          typeof body.prompt === "string"
+            ? body.prompt.trim()
+            : "";
+
+        const inputImage =
+          body.image ||
+          body.inputImage ||
+          body.fileData;
+
+        if (!prompt) {
+          return jsonResponse({
+            error: "Describe the image changes you want."
           }, 400, cors);
         }
 
@@ -384,15 +522,22 @@ export default {
           }, 413, cors);
         }
 
-        if (!isAllowedImageData(inputImage)) {
+        if (!isValidImageData(inputImage)) {
           return jsonResponse({
-            error: "Please upload a JPEG, PNG or WebP image under the size limit."
+            error: "Attach a JPEG, PNG or WebP image."
           }, 400, cors);
         }
 
+        const decoded = decodeDataUrl(
+          inputImage,
+          MAX_IMAGE_BYTES
+        );
+
+        // Kontext Pro expects a base64 image string or image URL,
+        // not the complete data:image/... prefix.
         const result = await env.AI.run(IMAGE_EDIT_MODEL, {
-          prompt: prompt.trim(),
-          input_image: inputImage,
+          prompt,
+          input_image: decoded.base64,
           output_format: "jpeg"
         });
 
@@ -401,10 +546,11 @@ export default {
           result?.result?.image ||
           result?.output?.image;
 
-        const image = await imageValueToDataUrl(imageValue);
+        const image = await getEditedImageDataUrl(imageValue);
 
         return jsonResponse({
           image,
+          dataURI: image,
           assistant: "DRIPSCALLION AI"
         }, 200, cors);
       }
@@ -414,7 +560,7 @@ export default {
         const prompt =
           typeof body.prompt === "string" && body.prompt.trim()
             ? body.prompt.trim()
-            : "Describe this image and explain the important details.";
+            : "Describe this image and explain its important details.";
 
         const images = Array.isArray(body.images)
           ? body.images
@@ -434,25 +580,36 @@ export default {
           }, 400, cors);
         }
 
-        const content = [{ type: "text", text: prompt }];
+        const content = [{
+          type: "text",
+          text: prompt
+        }];
 
         for (const image of images) {
-          if (!isAllowedImageData(image)) {
+          if (!isValidImageData(image)) {
             return jsonResponse({
-              error: "Use JPEG, PNG or WebP images under the size limit."
+              error: "Use JPEG, PNG or WebP images, up to 5 MB each."
             }, 400, cors);
           }
 
           content.push({
             type: "image_url",
-            image_url: { url: image }
+            image_url: {
+              url: image
+            }
           });
         }
 
         const result = await env.AI.run(CHAT_MODEL, {
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content }
+            {
+              role: "system",
+              content: SYSTEM_PROMPT
+            },
+            {
+              role: "user",
+              content
+            }
           ],
           max_tokens: 3000,
           chat_template_kwargs: {
@@ -474,49 +631,62 @@ export default {
         }, 200, cors);
       }
 
-      // 5. DOCUMENT READING: PDF, DOCX, TXT AND OTHER SUPPORTED FORMATS
+      // 5. DOCUMENT READING
       if (url.pathname === "/api/document") {
-        if (typeof env.AI.toMarkdown !== "function") {
+        const name = String(
+          body.name || body.filename || "document.pdf"
+        ).slice(0, 150);
+
+        const fileData =
+          body.fileData ||
+          body.file ||
+          body.data;
+
+        const extension = fileExtension(name);
+
+        const decoded = decodeDataUrl(
+          fileData,
+          MAX_DOCUMENT_BYTES
+        );
+
+        const bytes = decoded.bytes;
+
+        // Read plain text directly. These formats do not need
+        // the document conversion service.
+        if ([".txt", ".md"].includes(extension)) {
+          const text = decodeText(bytes);
+
+          if (!text) {
+            return jsonResponse({
+              error: "This text document is empty."
+            }, 422, cors);
+          }
+
           return jsonResponse({
-            error: "Document conversion is not available on this AI binding."
-          }, 501, cors);
+            name,
+            text: text.slice(0, 100000),
+            format: extension.slice(1),
+            assistant: "DRIPSCALLION AI"
+          }, 200, cors);
         }
 
-        const name = String(body.name || "document.pdf").slice(0, 120);
-        const fileData = body.fileData || body.file;
-
-        let decoded;
-
-        try {
-          decoded = decodeDataUrl(fileData);
-        } catch (error) {
-          return jsonResponse({ error: error.message }, 400, cors);
-        }
-
-        if (decoded.bytes.byteLength > MAX_DOCUMENT_BYTES) {
+        if (!getAllowedDocumentExtensions().includes(extension)) {
           return jsonResponse({
-            error: "Document is too large. Maximum size is 8 MB."
-          }, 413, cors);
-        }
-
-        const allowedExtensions = [
-          ".pdf", ".docx", ".doc",
-          ".txt", ".md", ".csv",
-          ".pptx", ".xlsx"
-        ];
-
-        const extension = getFileExtension(name);
-
-        if (!allowedExtensions.includes(extension)) {
-          return jsonResponse({
-            error: "Supported files: PDF, DOCX, DOC, TXT, MD, CSV, PPTX and XLSX."
+            error: "Unsupported document type. Use PDF, DOCX, XLSX, XLS, CSV, ODT, ODS, HTML, XML, TXT or MD."
           }, 415, cors);
         }
 
-        const blob = new Blob([decoded.bytes], {
+        if (typeof env.AI.toMarkdown !== "function") {
+          return jsonResponse({
+            error: "Cloudflare document conversion is unavailable on this AI binding."
+          }, 501, cors);
+        }
+
+        const blob = new Blob([bytes], {
           type: decoded.mimeType
         });
 
+        // Cloudflare accepts either one document object or an array.
         const conversion = await env.AI.toMarkdown({
           name,
           blob
@@ -526,13 +696,19 @@ export default {
           ? conversion[0]
           : conversion;
 
-        if (!converted || converted.error || converted.format === "error") {
+        if (
+          !converted ||
+          converted.format === "error" ||
+          converted.error
+        ) {
           return jsonResponse({
             error: converted?.error || "Could not read this document."
           }, 422, cors);
         }
 
-        const documentText = String(converted.data || "").trim();
+        const documentText = String(
+          converted.data || ""
+        ).trim();
 
         if (!documentText) {
           return jsonResponse({
@@ -548,11 +724,16 @@ export default {
         }, 200, cors);
       }
 
-      // 6. EDUCATIONAL PDF CONTENT GENERATION
+      // 6. EDUCATIONAL PDF CONTENT
+      // This endpoint creates document content. The website
+      // converts the returned Markdown into a downloadable PDF.
       if (url.pathname === "/api/pdf/content") {
-        const prompt = body.prompt;
+        const prompt =
+          typeof body.prompt === "string"
+            ? body.prompt.trim()
+            : "";
 
-        if (typeof prompt !== "string" || !prompt.trim()) {
+        if (!prompt) {
           return jsonResponse({
             error: "Describe the study material you want to create."
           }, 400, cors);
@@ -560,35 +741,45 @@ export default {
 
         if (prompt.length > 8000) {
           return jsonResponse({
-            error: "The PDF request is too long."
+            error: "The study-material request is too long."
           }, 413, cors);
         }
 
         const pdfSystemPrompt = `
-You are the DRIPSCALLION AI educational document creator.
+You are DRIPSCALLION AI's educational document creator.
 
-Create accurate, well-organized educational material for the subject,
-level and topic requested by the user.
+Support all subjects and learning levels:
+primary, secondary, college, university and professional learning.
 
-Support primary school, secondary school, college, university
-and professional learning across all subjects.
+Create accurate, clearly structured study materials.
 
-Use clear headings and subheadings.
-Explain concepts in a learner-friendly way.
-Include examples when useful.
-When requested, create revision questions, MCQs, short-answer
-questions, essay questions and a separate answer key.
-Do not invent official examination papers or claim a marking scheme
-is official.
-Do not add filler or long introductions.
-Use the same language as the user's request.
-Return clean Markdown with a clear document title.
+Use:
+- A clear document title.
+- Logical headings and subheadings.
+- Simple explanations appropriate to the requested level.
+- Examples where helpful.
+- Revision questions when requested.
+- MCQs and short-answer questions when requested.
+- Essay questions when requested.
+- Clearly separated answer keys when requested.
+
+Never claim generated practice material is an official examination.
+Never invent official marking schemes.
+Avoid unnecessary introductions and filler.
+Use the same language as the user.
+Return clean Markdown suitable for PDF formatting.
 `;
 
         const result = await env.AI.run(CHAT_MODEL, {
           messages: [
-            { role: "system", content: pdfSystemPrompt },
-            { role: "user", content: prompt.trim() }
+            {
+              role: "system",
+              content: pdfSystemPrompt
+            },
+            {
+              role: "user",
+              content: prompt
+            }
           ],
           max_tokens: 6000,
           chat_template_kwargs: {
@@ -605,18 +796,21 @@ Return clean Markdown with a clear document title.
         }
 
         return jsonResponse({
+          title: "DRIPSCALLION AI Study Material",
           content,
+          markdown: content,
+          format: "markdown",
           assistant: "DRIPSCALLION AI"
         }, 200, cors);
       }
 
-      // 7. SPEECH TO TEXT
+      // 7. SPEECH-TO-TEXT
       if (url.pathname === "/api/transcribe") {
         const audio = body.audio;
 
         if (typeof audio !== "string" || !audio.trim()) {
           return jsonResponse({
-            error: "Please provide an audio recording."
+            error: "Please provide audio data."
           }, 400, cors);
         }
 
@@ -628,7 +822,9 @@ Return clean Markdown with a clear document title.
 
         const result = await env.AI.run(SPEECH_MODEL, {
           audio,
-          task: "transcribe"
+          task: body.task === "translate"
+            ? "translate"
+            : "transcribe"
         });
 
         if (!result?.text) {
@@ -643,11 +839,14 @@ Return clean Markdown with a clear document title.
         }, 200, cors);
       }
 
-      // 8. TEXT TO SPEECH
+      // 8. TEXT-TO-SPEECH
       if (url.pathname === "/api/speak") {
-        const text = body.text;
+        const text =
+          typeof body.text === "string"
+            ? body.text.trim()
+            : "";
 
-        if (typeof text !== "string" || !text.trim()) {
+        if (!text) {
           return jsonResponse({
             error: "Please provide text."
           }, 400, cors);
@@ -660,13 +859,20 @@ Return clean Markdown with a clear document title.
         }
 
         const audio = await env.AI.run(VOICE_MODEL, {
-          text: text.trim(),
+          text,
           encoding: "mp3",
           container: "none",
           speaker: "luna"
         });
 
+        if (!audio) {
+          return jsonResponse({
+            error: "Text-to-speech returned no audio."
+          }, 502, cors);
+        }
+
         return new Response(audio, {
+          status: 200,
           headers: {
             ...cors,
             "Content-Type": "audio/mpeg",
@@ -675,7 +881,7 @@ Return clean Markdown with a clear document title.
         });
       }
 
-      // VIDEO GENERATION IS NOT PART OF THIS VERSION.
+      // VIDEO GENERATION IS INTENTIONALLY NOT INCLUDED.
       return jsonResponse({
         error: "Route not found."
       }, 404, cors);
@@ -685,7 +891,7 @@ Return clean Markdown with a clear document title.
 
       return jsonResponse({
         error: error?.message || "AI service error. Please try again."
-      }, 500, cors);
+      }, 502, cors);
     }
   }
 };
