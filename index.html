@@ -5,609 +5,314 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#101426">
-
 <link rel="manifest" href="/manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="DRIPSCALLION">
 <link rel="apple-touch-icon" href="/icon-192%20(1).png">
-
 <title>DRIPSCALLION AI</title>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{
-  --bg:#0c1020;
-  --panel:#11172a;
-  --panel2:#171e34;
-  --border:#252d46;
-  --text:#f4f5ff;
-  --muted:#929bb5;
-  --purple:#8b75ed;
-  --purple2:#6c56d9;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Inter,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  height:100dvh;
-  overflow:hidden;
-}
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.app{display:flex;height:100dvh;width:100%}
-
-.sidebar{
-  width:280px;
-  flex-shrink:0;
-  background:#0a0e1b;
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  padding:18px 13px;
-  transition:transform .25s;
-  z-index:10;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:11px;
-  padding:7px 8px 22px;
-}
-.brand-icon{
-  width:39px;height:39px;border-radius:13px;
-  display:grid;place-items:center;
-  background:linear-gradient(135deg,#a18aff,#5540ba);
-  font-size:19px;font-weight:800;
-}
-.brand-name{font-size:15px;font-weight:800;letter-spacing:.4px}
-.brand-sub{font-size:10px;color:var(--muted);margin-top:4px}
-.new-chat{
-  width:100%;padding:13px;
-  border:1px solid #51438e;
-  border-radius:12px;
-  color:white;background:#211c3b;
-  display:flex;align-items:center;gap:10px;
-  font-weight:600;
-}
-.new-chat:hover{background:#302657}
-.search-wrap{margin:14px 0}
-.search{
-  width:100%;padding:11px 12px;
-  border-radius:10px;
-  background:#151b2c;
-  border:1px solid var(--border);
-  color:white;outline:none;
-  appearance:none;
-}
-.search:focus{border-color:var(--purple)}
-.section-label{
-  font-size:11px;color:var(--muted);
-  padding:10px 8px;text-transform:uppercase;
-  letter-spacing:1px;
-}
-.chat-list{overflow-y:auto;flex:1}
-.chat-item{
-  display:flex;align-items:center;gap:8px;
-  padding:11px 10px;border-radius:9px;
-  color:#c7cbe0;font-size:13px;
-  cursor:pointer;margin-bottom:3px;
-}
-.chat-item:hover,.chat-item.active{background:#1a2035;color:white}
-.chat-title{
-  overflow:hidden;white-space:nowrap;
-  text-overflow:ellipsis;flex:1;
-}
-.chat-actions{display:flex;gap:3px}
-.small-action{
-  border:0;background:transparent;color:#929bb5;
-  padding:4px;border-radius:5px;font-size:12px;
-}
-.small-action:hover{background:#34304d;color:white}
-.sidebar-bottom{
-  border-top:1px solid var(--border);
-  padding-top:13px;margin-top:10px;
-}
-.account-button{
-  width:100%;padding:11px;
-  border:0;border-radius:10px;
-  background:#171e34;color:white;
-  display:flex;align-items:center;gap:10px;
-  text-align:left;
-}
-.avatar-small{
-  width:32px;height:32px;border-radius:50%;
-  background:#40356d;display:grid;place-items:center;
-  font-weight:700;
-}
-.account-info{min-width:0;flex:1}
-.account-name{font-size:12px;font-weight:600}
-.account-status{font-size:10px;color:var(--muted);margin-top:3px}
-
-.main{
-  flex:1;min-width:0;
-  display:flex;flex-direction:column;height:100dvh;
-}
-.topbar{
-  height:62px;flex-shrink:0;
-  display:flex;align-items:center;gap:13px;
-  padding:0 22px;
-  border-bottom:1px solid var(--border);
-  background:rgba(12,16,32,.94);
-}
-.menu-button{
-  border:0;background:transparent;color:white;
-  font-size:22px;padding:5px;display:none;
-}
-.top-title{font-size:14px;font-weight:700}
-.mode-select{
-  margin-left:auto;
-  background:#171e34;color:#ddd;
-  border:1px solid var(--border);
-  border-radius:9px;padding:8px 11px;
-  outline:none;font-size:12px;
-}
-.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}
-.messages{
-  max-width:850px;width:100%;
-  margin:0 auto;padding:28px 25px 35px;
-}
-.welcome{
-  min-height:65vh;display:flex;
-  flex-direction:column;align-items:center;
-  justify-content:center;text-align:center;padding:20px;
-}
-.welcome-logo{
-  width:64px;height:64px;border-radius:21px;
-  background:linear-gradient(135deg,#9c83ff,#5540ba);
-  display:grid;place-items:center;
-  font-size:27px;font-weight:800;
-  box-shadow:0 10px 40px #7560d733;
-}
-.welcome h1{font-size:27px;margin:22px 0 9px}
-.welcome p{
-  color:var(--muted);font-size:14px;
-  line-height:1.7;max-width:430px;
-}
-.suggestions{
-  display:flex;flex-wrap:wrap;
-  justify-content:center;gap:9px;
-  margin-top:20px;max-width:580px;
-}
-.suggestion{
-  background:#171e34;border:1px solid var(--border);
-  color:#d7d9e9;border-radius:20px;
-  padding:10px 14px;font-size:12px;
-}
-.suggestion:hover{
-  border-color:var(--purple);background:#211d3c;
-}
-
-.message{
-  display:flex;width:100%;
-  gap:11px;align-items:flex-start;margin:23px 0;
-}
-.message.user{justify-content:flex-end}
-.message.assistant{justify-content:flex-start}
-.message.user .avatar{order:2}
-.message.user .bubble{
-  order:1;background:#292448;
-  border:1px solid #40366d;
-  border-radius:17px 5px 17px 17px;
-}
-.message.assistant .bubble{
-  background:transparent;border:0;padding:5px 0;
-}
-.avatar{
-  width:32px;height:32px;flex-shrink:0;
-  border-radius:11px;display:grid;place-items:center;
-  background:#282247;color:#c9bbff;
-  font-size:14px;font-weight:800;
-}
-.message.user .avatar{background:#38305d;color:white}
-.bubble{
-  max-width:min(78%,650px);
-  padding:13px 16px;border-radius:5px 17px 17px 17px;
-  font-size:14px;line-height:1.75;
-  overflow-wrap:anywhere;
-}
-.bubble p{margin:0 0 10px}
-.bubble p:last-child{margin-bottom:0}
-.bubble pre{
-  background:#080c18;border:1px solid var(--border);
-  padding:13px;border-radius:10px;
-  overflow-x:auto;white-space:pre-wrap;
-}
-.bubble code{
-  background:#22283d;padding:2px 5px;
-  border-radius:5px;font-family:monospace;
-}
-.message-tools{display:flex;gap:7px;margin-top:7px;opacity:.65}
-.message-tools button{
-  background:transparent;border:0;
-  color:#aeb5cc;font-size:11px;padding:4px;
-}
-.message-tools button:hover{color:white}
-.typing{color:var(--muted);font-size:13px;padding:10px 0}
-
-.composer-area{
-  flex-shrink:0;padding:10px 20px 18px;
-  background:linear-gradient(transparent,var(--bg) 22%);
-}
-.composer{
-  max-width:850px;margin:0 auto;
-  background:#171e34;border:1px solid #343c59;
-  border-radius:17px;padding:11px 12px;
-  display:flex;align-items:flex-end;gap:10px;
-}
-.composer:focus-within{border-color:#7763d1}
-#messageInput{
-  flex:1;min-width:0;resize:none;
-  max-height:180px;min-height:27px;
-  border:0;outline:none;background:transparent;
-  color:white;font-size:14px;line-height:1.6;
-  padding:5px 2px;
-}
-#messageInput::placeholder{color:#858da7}
-.send-button{
-  width:38px;height:38px;flex-shrink:0;
-  border:0;border-radius:12px;
-  background:var(--purple);color:white;
-  font-size:19px;font-weight:700;
-}
-.send-button:hover{background:var(--purple2)}
-.send-button:disabled{opacity:.4;cursor:not-allowed}
-.composer-note{
-  text-align:center;color:#727b95;
-  font-size:10px;margin:10px 0 0;
-}
-
-.modal-backdrop{
-  position:fixed;inset:0;background:#000a;
-  display:none;align-items:center;
-  justify-content:center;padding:18px;z-index:30;
-}
-.modal-backdrop.show{display:flex}
-.modal{
-  width:100%;max-width:390px;
-  background:#151b2e;border:1px solid var(--border);
-  border-radius:19px;padding:25px;
-  box-shadow:0 20px 80px #0008;
-}
-.modal h2{font-size:21px;margin:0 0 8px}
-.modal p{color:var(--muted);font-size:13px;line-height:1.6}
-.modal input{
-  width:100%;padding:13px;margin:7px 0;
-  border-radius:10px;background:#0e1425;
-  border:1px solid var(--border);color:white;outline:none;
-}
-.modal input:focus{border-color:var(--purple)}
-.modal-button{
-  width:100%;padding:12px;border:0;
-  border-radius:10px;background:var(--purple);
-  color:white;font-weight:700;margin-top:9px;
-}
-.modal-secondary{
-  width:100%;padding:11px;
-  border:1px solid var(--border);
-  border-radius:10px;background:transparent;
-  color:white;margin-top:8px;
-}
-.modal-close{
-  float:right;background:transparent;
-  border:0;color:#aaa;font-size:20px;
-}
-#authMessage{
-  font-size:12px;color:#ffaaaa;
-  min-height:18px;margin-top:8px;
-}
-
-@media(max-width:760px){
-  .sidebar{
-    position:fixed;left:0;top:0;bottom:0;
-    transform:translateX(-105%);width:285px;
-    box-shadow:15px 0 45px #0006;
-  }
-  .sidebar.open{transform:translateX(0)}
-  .menu-button{display:block}
-  .topbar{padding:0 13px}
-  .messages{padding:20px 14px 25px}
-  .bubble{max-width:86%;font-size:13px}
-  .composer-area{padding:8px 12px 13px}
-  .welcome h1{font-size:23px}
-}
+:root{--bg:#0c1020;--panel:#11172a;--panel2:#171e34;--border:#252d46;--text:#f4f5ff;--muted:#929bb5;--purple:#8b75ed;--purple2:#6c56d9;--good:#78d6a2;--bad:#ff9292}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden}button,input,textarea,select{font:inherit}button{cursor:pointer}.app{display:flex;height:100dvh;width:100%}
+.sidebar{width:280px;flex-shrink:0;background:#0a0e1b;border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 13px;transition:transform .25s;z-index:10}.brand{display:flex;align-items:center;gap:11px;padding:7px 8px 22px}.brand-icon{width:39px;height:39px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#a18aff,#5540ba);font-size:19px;font-weight:800}.brand-name{font-size:15px;font-weight:800;letter-spacing:.4px}.brand-sub{font-size:10px;color:var(--muted);margin-top:4px}.new-chat{width:100%;padding:13px;border:1px solid #51438e;border-radius:12px;color:white;background:#211c3b;display:flex;align-items:center;gap:10px;font-weight:600}.new-chat:hover{background:#302657}.search-wrap{margin:14px 0}.search{width:100%;padding:11px 12px;border-radius:10px;background:#151b2c;border:1px solid var(--border);color:white;outline:none;appearance:none}.search:focus{border-color:var(--purple)}.section-label{font-size:11px;color:var(--muted);padding:10px 8px;text-transform:uppercase;letter-spacing:1px}.chat-list{overflow-y:auto;flex:1;min-height:50px}.chat-item{display:flex;align-items:center;gap:8px;padding:11px 10px;border-radius:9px;color:#c7cbe0;font-size:13px;cursor:pointer;margin-bottom:3px}.chat-item:hover,.chat-item.active{background:#1a2035;color:white}.chat-title{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1}.chat-actions{display:flex;gap:3px}.small-action{border:0;background:transparent;color:#929bb5;padding:4px;border-radius:5px;font-size:12px}.small-action:hover{background:#34304d;color:white}.sidebar-bottom{border-top:1px solid var(--border);padding-top:13px;margin-top:10px}.account-button{width:100%;padding:11px;border:0;border-radius:10px;background:#171e34;color:white;display:flex;align-items:center;gap:10px;text-align:left}.avatar-small{width:32px;height:32px;border-radius:50%;background:#40356d;display:grid;place-items:center;font-weight:700}.account-info{min-width:0;flex:1}.account-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-status{font-size:10px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100dvh}.topbar{height:62px;flex-shrink:0;display:flex;align-items:center;gap:13px;padding:0 22px;border-bottom:1px solid var(--border);background:rgba(12,16,32,.94)}.menu-button{border:0;background:transparent;color:white;font-size:22px;padding:5px;display:none}.top-title{font-size:14px;font-weight:700}.mode-select{margin-left:auto;background:#171e34;color:#ddd;border:1px solid var(--border);border-radius:9px;padding:8px 11px;outline:none;font-size:12px}.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}.messages{max-width:850px;width:100%;margin:0 auto;padding:28px 25px 35px}.welcome{min-height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}.welcome-logo{width:64px;height:64px;border-radius:21px;background:linear-gradient(135deg,#9c83ff,#5540ba);display:grid;place-items:center;font-size:27px;font-weight:800;box-shadow:0 10px 40px #7560d733}.welcome h1{font-size:27px;margin:22px 0 9px}.welcome p{color:var(--muted);font-size:14px;line-height:1.7;max-width:430px}.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:20px;max-width:580px}.suggestion{background:#171e34;border:1px solid var(--border);color:#d7d9e9;border-radius:20px;padding:10px 14px;font-size:12px}.suggestion:hover{border-color:var(--purple);background:#211d3c}
+.message{display:flex;width:100%;gap:11px;align-items:flex-start;margin:23px 0}.message.user{justify-content:flex-end}.message.assistant{justify-content:flex-start}.message.user .avatar{order:2}.message.user .bubble{order:1;background:#292448;border:1px solid #40366d;border-radius:17px 5px 17px 17px}.message.assistant .bubble{background:transparent;border:0;padding:5px 0}.avatar{width:32px;height:32px;flex-shrink:0;border-radius:11px;display:grid;place-items:center;background:#282247;color:#c9bbff;font-size:14px;font-weight:800}.message.user .avatar{background:#38305d;color:white}.bubble{max-width:min(78%,650px);padding:13px 16px;border-radius:5px 17px 17px 17px;font-size:14px;line-height:1.75;overflow-wrap:anywhere}.bubble p{margin:0 0 10px}.bubble p:last-child{margin-bottom:0}.bubble pre{background:#080c18;border:1px solid var(--border);padding:13px;border-radius:10px;overflow-x:auto;white-space:pre-wrap;margin:0}.code-block{margin:12px 0;border:1px solid var(--border);border-radius:11px;overflow:hidden;background:#080c18}.code-head{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#151b2c;color:#aeb5cc;font-size:11px}.code-head button{border:1px solid #3a4260;background:#202741;color:#e9e9fa;border-radius:7px;padding:5px 9px;font-size:11px}.code-block pre{border:0;border-radius:0}.bubble code:not(pre code){background:#22283d;padding:2px 5px;border-radius:5px;font-family:monospace}.message-tools{display:flex;gap:7px;margin-top:7px;opacity:.75}.message-tools button{background:transparent;border:0;color:#aeb5cc;font-size:11px;padding:4px}.message-tools button:hover{color:white}.typing{color:var(--muted);font-size:13px;padding:10px 0}
+.composer-area{flex-shrink:0;padding:10px 20px 18px;background:linear-gradient(transparent,var(--bg) 22%)}.quick-tools{max-width:850px;margin:0 auto 8px;display:flex;gap:7px;flex-wrap:wrap}.tool-button{background:#171e34;border:1px solid var(--border);color:#d7d9e9;border-radius:9px;padding:7px 10px;font-size:11px}.tool-button:hover{border-color:var(--purple);color:white}.attachment-preview{max-width:850px;margin:0 auto 8px;display:flex;gap:7px;flex-wrap:wrap}.attachment-chip{display:flex;gap:7px;align-items:center;max-width:220px;padding:6px 8px;border:1px solid var(--border);border-radius:9px;background:#151b2c;color:#d7d9e9;font-size:11px}.attachment-chip img{width:30px;height:30px;object-fit:cover;border-radius:5px}.attachment-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.attachment-chip button{border:0;background:transparent;color:#ffaaaa;padding:2px 4px}.composer{max-width:850px;margin:0 auto;background:#171e34;border:1px solid #343c59;border-radius:17px;padding:11px 12px;display:flex;align-items:flex-end;gap:10px}.composer:focus-within{border-color:#7763d1}#messageInput{flex:1;min-width:0;resize:none;max-height:180px;min-height:27px;border:0;outline:none;background:transparent;color:white;font-size:14px;line-height:1.6;padding:5px 2px}#messageInput::placeholder{color:#858da7}.send-button{width:38px;height:38px;flex-shrink:0;border:0;border-radius:12px;background:var(--purple);color:white;font-size:19px;font-weight:700}.send-button:hover{background:var(--purple2)}.send-button:disabled{opacity:.4;cursor:not-allowed}.composer-note{text-align:center;color:#727b95;font-size:10px;margin:9px 0 0}.save-status{max-width:850px;margin:5px auto 0;color:#8892ac;font-size:10px;min-height:13px}
+.modal-backdrop{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:18px;z-index:30;overflow:auto}.modal-backdrop.show{display:flex}.modal{width:100%;max-width:530px;max-height:90dvh;overflow:auto;background:#151b2e;border:1px solid var(--border);border-radius:19px;padding:22px;box-shadow:0 20px 80px #0008}.modal h2{font-size:20px;margin:0 0 8px}.modal p{color:var(--muted);font-size:13px;line-height:1.6}.modal input,.modal textarea{width:100%;padding:12px;margin:7px 0;border-radius:10px;background:#0e1425;border:1px solid var(--border);color:white;outline:none}.modal textarea{min-height:110px;resize:vertical}.modal input:focus,.modal textarea:focus{border-color:var(--purple)}.modal-button{width:100%;padding:12px;border:0;border-radius:10px;background:var(--purple);color:white;font-weight:700;margin-top:9px}.modal-button:disabled{opacity:.5;cursor:not-allowed}.modal-secondary{width:100%;padding:11px;border:1px solid var(--border);border-radius:10px;background:transparent;color:white;margin-top:8px}.modal-close{float:right;background:transparent;border:0;color:#aaa;font-size:22px}.modal-status{font-size:12px;color:#c3c8dc;min-height:18px;margin:10px 0}.modal-preview{display:none;margin-top:12px}.modal-preview img{width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:#090d19}.download-link{display:inline-block;margin-top:10px;color:#c6baff;text-decoration:none;font-size:13px}.pdf-preview{display:none;max-height:300px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#090d19;border:1px solid var(--border);padding:12px;border-radius:10px;color:#d9dcee;font-size:12px;line-height:1.6}.creation-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px}.creation-card{border:1px solid var(--border);border-radius:11px;padding:8px;background:#0e1425;min-width:0}.creation-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:7px}.creation-card p{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:6px 0}.creation-card button{font-size:10px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;background:#171e34;color:white;margin-right:3px}.modal-close-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.modal-close-row h2{margin:0}.modal-close-row .modal-close{float:none}.account-modal{max-width:390px}.account-modal input{margin:7px 0}#authMessage{font-size:12px;color:#ffaaaa;min-height:18px;margin-top:8px}
+@media(max-width:760px){.sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-105%);width:285px;box-shadow:15px 0 45px #0006}.sidebar.open{transform:translateX(0)}.menu-button{display:block}.topbar{padding:0 13px}.messages{padding:20px 14px 25px}.bubble{max-width:86%;font-size:13px}.composer-area{padding:8px 12px 13px}.welcome h1{font-size:23px}.quick-tools{gap:5px}.tool-button{padding:7px 8px;font-size:10px}.modal{padding:17px}.mode-select{max-width:135px}}
 </style>
 </head>
-
 <body>
 <div class="app">
-
-<aside class="sidebar" id="sidebar">
-  <div class="brand">
-    <div class="brand-icon">D</div>
-    <div>
-      <div class="brand-name">DRIPSCALLION AI</div>
-      <div class="brand-sub">FROM MACHAKOS TO THE WORLD</div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="brand-icon">D</div><div><div class="brand-name">DRIPSCALLION AI</div><div class="brand-sub">FROM MACHAKOS TO THE WORLD</div></div></div>
+    <button class="new-chat" id="newChatButton"><span>＋</span> New chat</button>
+    <div class="search-wrap">
+      <input class="search" id="chatSearch" type="search" name="drip-conversation-filter" placeholder="Search conversations..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-form-type="other" readonly aria-label="Search conversations">
     </div>
-  </div>
+    <div class="section-label">Recent chats</div>
+    <div class="chat-list" id="chatList"></div>
+    <div class="sidebar-bottom"><button class="account-button" id="accountButton"><div class="avatar-small" id="accountAvatar">G</div><div class="account-info"><div class="account-name" id="accountName">Guest mode</div><div class="account-status" id="accountStatus">Chats saved on this device</div></div><span>⋯</span></button></div>
+  </aside>
 
-  <button class="new-chat" id="newChatButton">
-    <span>＋</span> New chat
-  </button>
-
-  <div class="search-wrap">
-    <input
-      class="search"
-      id="chatSearch"
-      type="search"
-      name="conversation-filter"
-      placeholder="Search conversations..."
-      autocomplete="off"
-      autocorrect="off"
-      autocapitalize="none"
-      spellcheck="false"
-      data-lpignore="true"
-      data-form-type="other"
-      readonly
-      aria-label="Search conversations"
-    >
-  </div>
-
-  <div class="section-label">Recent chats</div>
-  <div class="chat-list" id="chatList"></div>
-
-  <div class="sidebar-bottom">
-    <button class="account-button" id="accountButton">
-      <div class="avatar-small" id="accountAvatar">G</div>
-      <div class="account-info">
-        <div class="account-name" id="accountName">Guest mode</div>
-        <div class="account-status" id="accountStatus">Chats saved on this device</div>
+  <main class="main">
+    <header class="topbar"><button class="menu-button" id="menuButton">☰</button><div class="top-title">DRIPSCALLION AI</div><select class="mode-select" id="modeSelect" aria-label="Chat mode"><option value="general">General AI</option><option value="study">Study Assistant</option><option value="helper">Conversation Helper</option></select></header>
+    <section class="chat-area" id="chatArea"><div class="messages" id="messages"></div></section>
+    <footer class="composer-area">
+      <div class="quick-tools">
+        <button class="tool-button" id="attachButton" type="button">＋ Attach file</button>
+        <button class="tool-button" id="imageToolButton" type="button">▧ Create image</button>
+        <button class="tool-button" id="pdfToolButton" type="button">▤ Study PDF</button>
+        <button class="tool-button" id="creationsButton" type="button">▣ My creations</button>
+        <input id="fileInput" type="file" hidden multiple accept="image/jpeg,image/png,image/webp,.pdf,.docx,.txt,.md,.csv,.xlsx,.xls,.xlsm,.xlsb,.et,.odt,.ods,.html,.htm,.xml,.numbers">
       </div>
-      <span>⋯</span>
-    </button>
-  </div>
-</aside>
-
-<main class="main">
-  <header class="topbar">
-    <button class="menu-button" id="menuButton">☰</button>
-    <div class="top-title">DRIPSCALLION AI</div>
-    <select class="mode-select" id="modeSelect" aria-label="Chat mode">
-      <option value="general">General AI</option>
-      <option value="study">Study Assistant</option>
-      <option value="helper">Conversation Helper</option>
-    </select>
-  </header>
-
-  <section class="chat-area" id="chatArea">
-    <div class="messages" id="messages"></div>
-  </section>
-
-  <footer class="composer-area">
-    <div class="composer">
-      <textarea id="messageInput" rows="1" placeholder="Message DRIPSCALLION AI..."></textarea>
-      <button class="send-button" id="sendButton" title="Send">↑</button>
-    </div>
-    <div class="composer-note">DRIPSCALLION AI can make mistakes. Check important information.</div>
-  </footer>
-</main>
+      <div class="attachment-preview" id="attachmentPreview"></div>
+      <div class="composer"><textarea id="messageInput" rows="1" placeholder="Message DRIPSCALLION AI..."></textarea><button class="send-button" id="sendButton" title="Send">↑</button></div>
+      <div class="composer-note">Attachments are analysed for this reply; original files are not stored in cloud history yet.</div>
+      <div class="save-status" id="saveStatus" aria-live="polite"></div>
+    </footer>
+  </main>
 </div>
 
-<div class="modal-backdrop" id="authModal">
-  <div class="modal">
-    <button class="modal-close" id="closeModal">×</button>
-    <h2 id="authTitle">Welcome to DRIPSCALLION AI</h2>
-    <p id="authDescription">Create an account to keep your conversations synced.</p>
+<!-- ACCOUNT MODAL -->
+<div class="modal-backdrop" id="authModal"><div class="modal account-modal"><button class="modal-close" id="closeAuthModal">×</button><h2>Welcome to DRIPSCALLION AI</h2><p>Log in to sync your conversations across sessions.</p><input type="email" id="authEmail" placeholder="Email address" autocomplete="username"><input type="password" id="authPassword" placeholder="Password" autocomplete="current-password"><button class="modal-button" id="loginButton">Login</button><button class="modal-secondary" id="signupButton">Create account</button><button class="modal-secondary" id="guestButton">Continue as guest</button><button class="modal-secondary" id="logoutButton" style="display:none">Logout</button><div id="authMessage"></div></div></div>
 
-    <input
-      type="email"
-      id="authEmail"
-      placeholder="Email address"
-      autocomplete="username"
-    >
-    <input
-      type="password"
-      id="authPassword"
-      placeholder="Password"
-      autocomplete="current-password"
-    >
+<!-- IMAGE GENERATOR MODAL -->
+<div class="modal-backdrop" id="imageModal"><div class="modal"><div class="modal-close-row"><h2>Create an image</h2><button class="modal-close" data-close="imageModal">×</button></div><p>Describe the image you want. FLUX will generate an image from your description.</p><textarea id="imagePrompt" maxlength="2048" placeholder="Example: A realistic cinematic photo of Nairobi at sunset..."></textarea><button class="modal-button" id="generateImageButton">Generate image</button><div class="modal-status" id="imageStatus" aria-live="polite"></div><div class="modal-preview" id="imageResult"><img id="generatedImage" alt="AI generated image"><a class="download-link" id="downloadImage" href="#" download="dripscallion-image.jpg">Download image</a></div></div></div>
 
-    <button class="modal-button" id="loginButton">Login</button>
-    <button class="modal-secondary" id="signupButton">Create account</button>
-    <button class="modal-secondary" id="guestButton">Continue as guest</button>
-    <button class="modal-secondary" id="logoutButton" style="display:none">Logout</button>
-    <div id="authMessage"></div>
-  </div>
-</div>
+<!-- PDF CREATOR MODAL -->
+<div class="modal-backdrop" id="pdfModal"><div class="modal"><div class="modal-close-row"><h2>Student PDF Creator</h2><button class="modal-close" data-close="pdfModal">×</button></div><p>Create notes, revision questions, quizzes or study guides for any subject and learning level.</p><textarea id="pdfPrompt" maxlength="8000" placeholder="Example: Create university-level biology notes about cell division, with examples and 15 revision questions with answers."></textarea><button class="modal-button" id="createPdfButton">Create and download PDF</button><div class="modal-status" id="pdfStatus" aria-live="polite"></div><pre class="pdf-preview" id="pdfPreview"></pre></div></div>
+
+<!-- MY CREATIONS MODAL -->
+<div class="modal-backdrop" id="creationsModal"><div class="modal"><div class="modal-close-row"><h2>My creations</h2><button class="modal-close" data-close="creationsModal">×</button></div><p>Images saved in this browser on this device.</p><div class="modal-status" id="creationsStatus"></div><div class="creation-grid" id="creationGrid"></div></div></div>
 
 <script>
-/* SUPABASE CONNECTION */
+/* SUPABASE: keep the existing project and default auth storage key */
 const SUPABASE_URL = "https://ftvprgacnbnvwmyoqbwz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_lQQg4hQqx8-Ix2gV0qaQ4A_ypKVsp7R";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+if (!window.supabase) {
+  document.body.innerHTML = '<div style="padding:24px;color:white">Could not load the account service. Refresh this page and try again.</div>';
+  throw new Error("Supabase library did not load.");
+}
 
-/* APP STATE */
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+
 let currentUser = null;
 let isGuest = true;
 let chats = [];
 let currentChatId = null;
 let isSending = false;
 let activeController = null;
+let pendingFiles = [];
+let loadedIdentity = undefined;
+const saveQueues = new Map();
 
-const $ = id => document.getElementById(id);
-
-function makeId(){
-  return crypto.randomUUID();
-}
-
-function setSaveStatus(message){
+function setSaveStatus(message, error = false) {
+  $("saveStatus").textContent = message;
+  $("saveStatus").style.color = error ? "var(--bad)" : "#8892ac";
   $("accountStatus").textContent = message;
 }
 
-function escapeHTML(value){
+function makeId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, char => {
+    const random = Math.random() * 16 | 0;
+    return (char === "x" ? random : (random & 3 | 8)).toString(16);
+  });
+}
+
+function makeTitle(text) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  return clean.length > 38 ? clean.slice(0, 38) + "..." : clean || "New chat";
+}
+
+function getCurrentChat() {
+  return chats.find(chat => chat.id === currentChatId) || null;
+}
+
+function escapeHTML(value) {
   return String(value).replace(/[&<>"']/g, char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#039;"
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   })[char]);
 }
 
-/* MESSAGE FORMATTING */
-function formatMessage(text){
+/* Safe text rendering with separate Copy Code buttons */
+function messageHTML(text, codeBlocks) {
   let safe = escapeHTML(text || "");
-  safe = safe.replace(/```([\s\S]*?)```/g,
-    (_, code) => "<pre><code>" + code + "</code></pre>");
-  safe = safe.replace(/`([^`]+)`/g,"<code>$1</code>");
-  safe = safe.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>");
-  safe = safe.replace(/\*(.*?)\*/g,"<em>$1</em>");
-  safe = safe.replace(/\n/g,"<br>");
+  safe = safe.replace(/```([a-zA-Z0-9_+-]*)\s*\n?([\s\S]*?)```/g, (_match, language, code) => {
+    const index = codeBlocks.push(code.replace(/\n$/, "")) - 1;
+    return `@@DRIP_CODE_${index}@@`;
+  });
+  safe = safe.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  safe = safe.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  safe = safe.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  safe = safe.replace(/\n/g, "<br>");
+  safe = safe.replace(/@@DRIP_CODE_(\d+)@@/g, (_match, number) => {
+    const index = Number(number);
+    const code = codeBlocks[index] || "";
+    return `<div class="code-block"><div class="code-head"><span>Code</span><button type="button" data-copy-code="${index}">Copy Code</button></div><pre><code>${escapeHTML(code)}</code></pre></div>`;
+  });
   return safe;
 }
 
-function makeTitle(text){
-  const clean = String(text).replace(/\s+/g," ").trim();
-  return clean.length > 38 ? clean.slice(0,38) + "..." : clean || "New chat";
-}
-
-function getCurrentChat(){
-  return chats.find(chat => chat.id === currentChatId);
-}
-
 /* GUEST STORAGE */
-function saveGuestChats(){
-  try{
-    localStorage.setItem("dripscallion_chats",JSON.stringify(chats));
+function saveGuestChats() {
+  try {
+    localStorage.setItem("dripscallion_chats", JSON.stringify(chats));
     setSaveStatus("Chats saved on this device");
     return true;
-  }catch(error){
-    console.error("Guest chat save failed:",error);
-    setSaveStatus("Could not save chats on this device");
+  } catch (error) {
+    console.error("Guest chat save failed:", error);
+    setSaveStatus("Could not save guest chats on this device", true);
     return false;
   }
 }
 
-function loadGuestChats(){
-  try{
-    const stored = JSON.parse(
-      localStorage.getItem("dripscallion_chats") || "[]"
-    );
-    chats = Array.isArray(stored) ? stored : [];
-  }catch(error){
-    console.error("Guest chat load failed:",error);
+function loadGuestChats() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("dripscallion_chats") || "[]");
+    chats = Array.isArray(stored) ? stored.filter(item => item && item.id && Array.isArray(item.messages)) : [];
+  } catch (error) {
+    console.error("Guest chat load failed:", error);
     chats = [];
-    setSaveStatus("Could not read saved chats");
+    setSaveStatus("Could not read saved guest chats", true);
   }
 }
 
-/* DATABASE STORAGE */
-async function loadUserChats(){
-  if(!currentUser) return;
+function activeChatKey(userId) {
+  return `dripscallion_active_chat_${userId || "guest"}`;
+}
 
-  const requestedUserId = currentUser.id;
+function rememberActiveChat() {
+  try {
+    localStorage.setItem(activeChatKey(currentUser?.id || null), currentChatId || "");
+  } catch (error) {
+    console.warn("Could not remember active conversation:", error);
+  }
+}
+
+/* SUPABASE CHAT HISTORY */
+async function loadUserChats(userId) {
+  if (!userId || currentUser?.id !== userId) return;
   setSaveStatus("Loading saved conversations...");
 
-  const {data,error} = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("chats")
-    .select("id,user_id,title,messages,created_at,updated_at")
-    .eq("user_id",requestedUserId)
-    .order("updated_at",{ascending:false});
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
 
-  if(currentUser?.id !== requestedUserId) return;
+  if (currentUser?.id !== userId) return;
 
-  if(error){
-    console.error("Chat history load failed:",error);
-    setSaveStatus("Could not load chat history");
+  if (error) {
+    console.error("Chat history load failed:", error);
+    setSaveStatus("History could not load. Check Supabase access policies.", true);
+    renderChatList();
+    renderMessages();
     return;
   }
 
-  chats = (data || []).map(row => ({
-    id:row.id,
-    title:row.title || "New chat",
-    messages:Array.isArray(row.messages) ? row.messages : [],
-    created_at:row.created_at,
-    updated_at:row.updated_at
-  }));
+  const rows = Array.isArray(data) ? data : [];
+  chats = rows.map(row => {
+    let messages = row.messages;
+    if (typeof messages === "string") {
+      try { messages = JSON.parse(messages); } catch { messages = []; }
+    }
+    return {
+      id: row.id,
+      title: row.title || "New chat",
+      messages: Array.isArray(messages) ? messages : [],
+      created_at: row.created_at || null,
+      updated_at: row.updated_at || null
+    };
+  });
 
-  if(!chats.some(chat => chat.id === currentChatId)){
-    currentChatId = chats[0]?.id || null;
-  }
+  let savedActive = null;
+  try { savedActive = localStorage.getItem(activeChatKey(userId)); } catch {}
+  currentChatId = chats.some(chat => chat.id === savedActive)
+    ? savedActive
+    : (chats[0]?.id || null);
 
-  setSaveStatus(chats.length ? "Chat history synced" : "No saved conversations yet");
+  rememberActiveChat();
+  setSaveStatus(chats.length ? `${chats.length} conversation(s) synced` : "No saved conversations yet");
   renderChatList();
   renderMessages();
 }
 
-async function saveChat(chat){
-  if(!chat) return false;
-
+async function saveChat(chat) {
+  if (!chat) return false;
   chat.updated_at = new Date().toISOString();
 
-  if(isGuest || !currentUser){
-    return saveGuestChats();
-  }
+  if (isGuest || !currentUser) return saveGuestChats();
 
-  const savingUserId = currentUser.id;
-
+  const userId = currentUser.id;
   const payload = {
-    id:chat.id,
-    user_id:savingUserId,
-    title:chat.title,
-    messages:chat.messages,
-    updated_at:chat.updated_at
+    id: chat.id,
+    user_id: userId,
+    title: chat.title || "New chat",
+    messages: chat.messages,
+    updated_at: chat.updated_at
   };
 
-  setSaveStatus("Saving conversation...");
+  const previous = saveQueues.get(chat.id) || Promise.resolve(true);
+  const task = previous.catch(() => false).then(async () => {
+    if (currentUser?.id !== userId) return false;
+    setSaveStatus("Saving conversation...");
+    const { error } = await supabaseClient
+      .from("chats")
+      .upsert(payload, { onConflict: "id" });
 
-  const {error} = await supabaseClient
-    .from("chats")
-    .upsert(payload,{onConflict:"id"});
+    if (currentUser?.id !== userId) return false;
+    if (error) {
+      console.error("Chat save failed:", error);
+      setSaveStatus("Save failed. Check Supabase policies or connection.", true);
+      return false;
+    }
+    setSaveStatus("Chat history synced");
+    return true;
+  });
 
-  if(currentUser?.id !== savingUserId) return false;
+  saveQueues.set(chat.id, task);
+  return task;
+}
 
-  if(error){
-    console.error("Chat save failed:",error);
-    setSaveStatus("Save failed — check connection");
-    return false;
+function updateAccountUI() {
+  if (currentUser) {
+    $("accountName").textContent = currentUser.email || "My account";
+    $("accountAvatar").textContent = (currentUser.email || "U").charAt(0).toUpperCase();
+    $("logoutButton").style.display = "block";
+    $("guestButton").style.display = "none";
+  } else {
+    $("accountName").textContent = "Guest mode";
+    $("accountAvatar").textContent = "G";
+    $("logoutButton").style.display = "none";
+    $("guestButton").style.display = "block";
   }
+}
 
-  setSaveStatus("Chat history synced");
-  return true;
+async function applySession(user) {
+  const nextId = user?.id || null;
+  if (loadedIdentity === nextId) return;
+  loadedIdentity = nextId;
+  currentUser = user || null;
+  isGuest = !currentUser;
+  currentChatId = null;
+  updateAccountUI();
+
+  if (currentUser) {
+    await loadUserChats(currentUser.id);
+  } else {
+    loadGuestChats();
+    let savedActive = null;
+    try { savedActive = localStorage.getItem(activeChatKey(null)); } catch {}
+    currentChatId = chats.some(chat => chat.id === savedActive) ? savedActive : (chats[0]?.id || null);
+    setSaveStatus("Guest chats saved on this device");
+    renderChatList();
+    renderMessages();
+  }
 }
 
 /* CHAT LIST */
-function renderChatList(){
+function renderChatList() {
   const list = $("chatList");
-  const searchInput = $("chatSearch");
-  const query = searchInput.value.toLowerCase().trim();
-
+  const query = $("chatSearch").value.toLowerCase().trim();
   list.innerHTML = "";
+  const filtered = chats.filter(chat => (chat.title || "").toLowerCase().includes(query));
 
-  const filtered = chats.filter(chat =>
-    (chat.title || "").toLowerCase().includes(query)
-  );
-
-  if(!filtered.length){
-    list.innerHTML =
-      '<div style="padding:12px;color:#77809a;font-size:12px">No conversations yet</div>';
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:12px;color:#77809a;font-size:12px">No conversations yet</div>';
     return;
   }
 
   filtered.forEach(chat => {
     const item = document.createElement("div");
-    item.className =
-      "chat-item" + (chat.id === currentChatId ? " active" : "");
-
+    item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
     item.onclick = () => openChat(chat.id);
 
     const title = document.createElement("span");
@@ -619,91 +324,81 @@ function renderChatList(){
 
     const rename = document.createElement("button");
     rename.className = "small-action";
+    rename.type = "button";
     rename.textContent = "✎";
     rename.title = "Rename chat";
-    rename.onclick = event => {
-      event.stopPropagation();
-      renameChat(chat.id);
-    };
+    rename.onclick = event => { event.stopPropagation(); renameChat(chat.id); };
 
     const remove = document.createElement("button");
     remove.className = "small-action";
+    remove.type = "button";
     remove.textContent = "×";
     remove.title = "Delete chat";
-    remove.onclick = event => {
-      event.stopPropagation();
-      deleteChat(chat.id);
-    };
+    remove.onclick = event => { event.stopPropagation(); deleteChat(chat.id); };
 
-    actions.append(rename,remove);
-    item.append(title,actions);
+    actions.append(rename, remove);
+    item.append(title, actions);
     list.appendChild(item);
   });
 }
 
-function renameChat(id){
+function renameChat(id) {
   const chat = chats.find(item => item.id === id);
-  if(!chat) return;
-
-  const next = prompt("Enter a new chat name:",chat.title);
-
-  if(next && next.trim()){
+  if (!chat) return;
+  const next = prompt("Enter a new chat name:", chat.title);
+  if (next && next.trim()) {
     chat.title = next.trim();
-    saveChat(chat);
     renderChatList();
+    saveChat(chat);
   }
 }
 
-async function deleteChat(id){
+async function deleteChat(id) {
   const chat = chats.find(item => item.id === id);
-  if(!chat || !confirm("Delete this conversation?")) return;
+  if (!chat || !confirm("Delete this conversation?")) return;
 
-  if(!isGuest && currentUser){
-    const {error} = await supabaseClient
+  if (!isGuest && currentUser) {
+    const userId = currentUser.id;
+    const { error } = await supabaseClient
       .from("chats")
       .delete()
-      .eq("id",id)
-      .eq("user_id",currentUser.id);
-
-    if(error){
-      console.error("Chat delete failed:",error);
-      alert("Could not delete this conversation.");
+      .eq("id", id)
+      .eq("user_id", userId);
+    if (error) {
+      console.error("Chat delete failed:", error);
+      alert("Could not delete this conversation. Check database permissions.");
       return;
     }
   }
 
   chats = chats.filter(item => item.id !== id);
-
-  if(isGuest) saveGuestChats();
-
-  if(currentChatId === id){
-    currentChatId = chats[0]?.id || null;
-  }
-
+  if (currentChatId === id) currentChatId = chats[0]?.id || null;
+  if (isGuest) saveGuestChats();
+  rememberActiveChat();
   renderChatList();
   renderMessages();
 }
 
-function newChat(){
+function newChat() {
   currentChatId = null;
+  rememberActiveChat();
   renderChatList();
   renderMessages();
   $("messageInput").focus();
   $("sidebar").classList.remove("open");
 }
 
-function openChat(id){
-  const selected = chats.find(chat => chat.id === id);
-  if(!selected) return;
-
+function openChat(id) {
+  if (!chats.some(chat => chat.id === id)) return;
   currentChatId = id;
+  rememberActiveChat();
   renderChatList();
   renderMessages();
   $("sidebar").classList.remove("open");
 }
 
-/* DISPLAY MESSAGES */
-function showWelcome(){
+/* MESSAGE DISPLAY AND COPY CODE */
+function showWelcome() {
   $("messages").innerHTML = `
     <div class="welcome">
       <div class="welcome-logo">D</div>
@@ -718,442 +413,710 @@ function showWelcome(){
     </div>`;
 }
 
-function renderMessages(){
+function renderMessages() {
   const area = $("messages");
   const chat = getCurrentChat();
-
-  if(!chat || !Array.isArray(chat.messages) || !chat.messages.length){
+  if (!chat || !Array.isArray(chat.messages) || chat.messages.length === 0) {
     showWelcome();
     return;
   }
 
   area.innerHTML = "";
-
   chat.messages.forEach(message => {
     const row = document.createElement("div");
-    row.className =
-      "message " + (message.role === "user" ? "user" : "assistant");
-
+    row.className = "message " + (message.role === "user" ? "user" : "assistant");
     const avatar = document.createElement("div");
     avatar.className = "avatar";
     avatar.textContent = message.role === "user" ? "U" : "D";
-
     const content = document.createElement("div");
     content.className = "bubble";
-    content.innerHTML = formatMessage(message.content);
+    const codeBlocks = [];
+    content.innerHTML = messageHTML(message.content, codeBlocks);
 
-    row.append(avatar,content);
+    content.querySelectorAll("[data-copy-code]").forEach(button => {
+      button.addEventListener("click", async () => {
+        const code = codeBlocks[Number(button.dataset.copyCode)] || "";
+        try {
+          await navigator.clipboard.writeText(code);
+          button.textContent = "Copied";
+          setTimeout(() => button.textContent = "Copy Code", 1200);
+        } catch {
+          button.textContent = "Copy failed";
+        }
+      });
+    });
+
+    row.append(avatar, content);
     area.appendChild(row);
 
-    if(message.role === "assistant"){
+    if (message.role === "assistant") {
       const tools = document.createElement("div");
       tools.className = "message-tools";
-
       const copy = document.createElement("button");
-      copy.textContent = "Copy";
+      copy.type = "button";
+      copy.textContent = "Copy answer";
       copy.onclick = async () => {
-        try{
-          await navigator.clipboard.writeText(message.content);
+        try {
+          await navigator.clipboard.writeText(message.content || "");
           copy.textContent = "Copied";
-          setTimeout(() => copy.textContent = "Copy",1200);
-        }catch(error){
-          console.error("Copy failed:",error);
-        }
+          setTimeout(() => copy.textContent = "Copy answer", 1200);
+        } catch { copy.textContent = "Copy failed"; }
       };
-
       tools.appendChild(copy);
       content.appendChild(tools);
     }
   });
-
   scrollToBottom();
 }
 
-function scrollToBottom(){
+function scrollToBottom() {
   const area = $("chatArea");
   area.scrollTop = area.scrollHeight;
 }
 
-/* MODES */
-function getModeInstruction(){
+/* MODE AND LANGUAGE */
+function getModeInstruction() {
   const mode = $("modeSelect").value;
-
-  if(mode === "study"){
-    return "You are a helpful study assistant. Explain concepts clearly and step by step.";
-  }
-
-  if(mode === "helper"){
-    return "You are a conversation helper. Help the user write natural, respectful messages.";
-  }
-
+  if (mode === "study") return "You are a helpful study assistant. Explain concepts clearly and step by step.";
+  if (mode === "helper") return "You are a conversation helper. Help the user write natural, respectful messages.";
   return "You are a helpful general AI assistant.";
 }
 
-/* LANGUAGE RULE */
-function languageInstruction(){
-  return `
-IMPORTANT LANGUAGE RULE:
-Identify the main language used in the latest user message.
-Reply in that same language only.
-If the latest message is English, use English only.
-If it is Kiswahili, use Kiswahili only.
-If it is Kenyan Sheng, use natural Kenyan Sheng.
-Do not randomly mix English and Kiswahili.
-Only use another language when the user specifically requests translation or bilingual writing.
-Keep code, technical names and proper nouns unchanged.
-`;
+function languageInstruction() {
+  return `Identify the language of the latest user message and reply in that language only. Use English for English, Kiswahili for Kiswahili and natural Kenyan Sheng for Sheng. Do not randomly mix languages. Keep simple answers concise and explain difficult topics clearly.`;
 }
 
-/* SEND MESSAGE */
-async function sendMessage(){
-  if(isSending) return;
+async function postJSON(path, payload, signal) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    signal
+  });
 
+  let data;
+  try { data = await response.json(); }
+  catch { throw new Error(`The server returned an unreadable response (${response.status}).`); }
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || `Request failed (${response.status}).`);
+  }
+  return data;
+}
+
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+    reader.readAsDataURL(file);
+  });
+}
+
+function extensionOf(name) {
+  const dot = String(name).lastIndexOf(".");
+  return dot >= 0 ? name.slice(dot).toLowerCase() : "";
+}
+
+function isImageFile(file) {
+  return ["image/jpeg", "image/png", "image/webp"].includes(file.type.toLowerCase()) || [".jpg", ".jpeg", ".png", ".webp"].includes(extensionOf(file.name));
+}
+
+function isTextFile(file) {
+  return [".txt", ".md"].includes(extensionOf(file.name));
+}
+
+function renderPendingFiles() {
+  const wrap = $("attachmentPreview");
+  wrap.innerHTML = "";
+  pendingFiles.forEach((file, index) => {
+    const chip = document.createElement("div");
+    chip.className = "attachment-chip";
+    if (isImageFile(file)) {
+      const thumb = document.createElement("img");
+      thumb.src = URL.createObjectURL(file);
+      thumb.alt = "Attachment preview";
+      chip.appendChild(thumb);
+    }
+    const name = document.createElement("span");
+    name.textContent = file.name;
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "×";
+    remove.title = "Remove attachment";
+    remove.onclick = () => {
+      pendingFiles.splice(index, 1);
+      renderPendingFiles();
+    };
+    chip.append(name, remove);
+    wrap.appendChild(chip);
+  });
+}
+
+function addSelectedFiles(fileList) {
+  const incoming = Array.from(fileList || []);
+  const supported = [".pdf", ".docx", ".txt", ".md", ".csv", ".xlsx", ".xls", ".xlsm", ".xlsb", ".et", ".odt", ".ods", ".html", ".htm", ".xml", ".numbers"];
+  for (const file of incoming) {
+    if (pendingFiles.length >= 5) {
+      alert("Attach up to five files at a time.");
+      break;
+    }
+    const ext = extensionOf(file.name);
+    if (!isImageFile(file) && !supported.includes(ext)) {
+      alert(`Unsupported file: ${file.name}`);
+      continue;
+    }
+    const max = isImageFile(file) ? 5 * 1024 * 1024 : 8 * 1024 * 1024;
+    if (file.size > max) {
+      alert(`${file.name} is too large. Maximum size: ${isImageFile(file) ? "5 MB" : "8 MB"}.`);
+      continue;
+    }
+    pendingFiles.push(file);
+  }
+  renderPendingFiles();
+}
+
+async function processAttachments(files, userQuestion) {
+  const extraContext = [];
+  const images = files.filter(isImageFile);
+  const documents = files.filter(file => !isImageFile(file));
+
+  // Send images one at a time so several attachments do not exceed
+  // the Worker's request-size limit after Base64 encoding.
+  for (const imageFile of images) {
+    const imageData = await fileToDataURL(imageFile);
+    const vision = await postJSON("/api/vision", {
+      prompt: userQuestion || "Describe this image and explain its important details.",
+      image: imageData
+    });
+    extraContext.push(`IMAGE ANALYSIS (${imageFile.name}):\n${vision.response || "No image description was returned."}`);
+  }
+
+  for (const file of documents) {
+    let extractedText = "";
+    if (isTextFile(file)) {
+      extractedText = await file.text();
+    } else {
+      const fileData = await fileToDataURL(file);
+      const converted = await postJSON("/api/document", {
+        name: file.name,
+        fileData
+      });
+      extractedText = converted.text || "";
+    }
+    if (!extractedText.trim()) {
+      throw new Error(`No readable text was extracted from ${file.name}.`);
+    }
+    extraContext.push(`DOCUMENT: ${file.name}\n${extractedText.slice(0, 18000)}`);
+  }
+  return extraContext;
+}
+
+/* CHAT SEND AND HISTORY */
+async function sendMessage() {
+  if (isSending) return;
   const input = $("messageInput");
   const text = input.value.trim();
-
-  if(!text) return;
+  const files = [...pendingFiles];
+  if (!text && !files.length) return;
 
   let chat = getCurrentChat();
-
-  if(!chat){
+  if (!chat) {
     chat = {
-      id:makeId(),
-      title:makeTitle(text),
-      messages:[],
-      created_at:new Date().toISOString(),
-      updated_at:new Date().toISOString()
+      id: makeId(),
+      title: makeTitle(text || files[0]?.name || "Attached files"),
+      messages: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
-
     chats.unshift(chat);
     currentChatId = chat.id;
   }
 
-  if(!chat.messages.length){
-    chat.title = makeTitle(text);
-  }
+  const displayText = text || "Please analyse the attached file(s).";
+  const attachmentLabel = files.length
+    ? "\n\n[Attached: " + files.map(file => file.name).join(", ") + "]"
+    : "";
+  const historyBefore = chat.messages.slice(-12).map(item =>
+    (item.role === "user" ? "User: " : "Assistant: ") + item.content
+  ).join("\n\n");
 
-  chat.messages.push({role:"user",content:text});
+  chat.messages.push({
+    role: "user",
+    content: displayText + attachmentLabel
+  });
+  if (chat.messages.length === 1) chat.title = makeTitle(displayText);
 
   input.value = "";
   input.style.height = "auto";
-
+  pendingFiles = [];
+  renderPendingFiles();
   renderChatList();
   renderMessages();
-
-  /* Save the user's message immediately */
+  rememberActiveChat();
   await saveChat(chat);
 
   isSending = true;
-  $("sendButton").textContent = "…";
   $("sendButton").disabled = true;
-
+  $("sendButton").textContent = "…";
   const typing = document.createElement("div");
   typing.className = "typing";
-  typing.textContent = "DRIPSCALLION AI is thinking...";
+  typing.textContent = files.length ? "Reading your attachment(s)..." : "DRIPSCALLION AI is thinking...";
   $("messages").appendChild(typing);
   scrollToBottom();
+  activeController = new AbortController();
 
-  const history = chat.messages
-    .slice(-13,-1)
-    .map(message =>
-      (message.role === "user" ? "User: " : "Assistant: ") + message.content
-    )
-    .join("\n\n");
+  try {
+    let attachmentContext = [];
+    if (files.length) {
+      attachmentContext = await processAttachments(files, displayText);
+    }
 
-  const fullPrompt = `
+    const fullPrompt = `
 ${getModeInstruction()}
 
 ${languageInstruction()}
 
 Previous conversation:
-${history || "No previous conversation."}
+${historyBefore || "No previous conversation."}
 
 Latest user message:
-${text}
+${displayText}
 
-Respond naturally and directly to the latest user message.
+${attachmentContext.length ? "ATTACHED FILE CONTENT AND IMAGE ANALYSIS:\n" + attachmentContext.join("\n\n---\n\n") : ""}
+
+Respond naturally and directly. Keep the answer concise unless detailed explanation is useful or requested.
 `;
 
-  activeController = new AbortController();
+    const data = await postJSON("/api/chat", { message: fullPrompt }, activeController.signal);
+    const answer = data.response || data.reply || data.output_text;
+    if (!answer) throw new Error("The AI returned an empty answer.");
 
-  try{
-    const response = await fetch("/api/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({message:fullPrompt}),
-      signal:activeController.signal
-    });
-
-    const data = await response.json();
-
-    if(!response.ok){
-      throw new Error(data.error || data.message || "The AI request failed.");
-    }
-
-    const answer =
-      data.response ||
-      data.reply ||
-      data.result?.response ||
-      data.output_text ||
-      data.result?.output ||
-      "I couldn't generate a response. Please try again.";
-
-    chat.messages.push({
-      role:"assistant",
-      content:String(answer)
-    });
-
+    chat.messages.push({ role: "assistant", content: String(answer) });
+    chat.updated_at = new Date().toISOString();
     await saveChat(chat);
 
-  }catch(error){
-    console.error("Chat request failed:",error);
-
-    const errorText = error.name === "AbortError"
+  } catch (error) {
+    console.error("Chat request failed:", error);
+    const message = error.name === "AbortError"
       ? "Response stopped."
-      : "Sorry, something went wrong. Please try again.";
-
-    chat.messages.push({
-      role:"assistant",
-      content:errorText
-    });
-
+      : "Sorry, I couldn't complete that request: " + error.message;
+    chat.messages.push({ role: "assistant", content: message });
     await saveChat(chat);
-
-  }finally{
+  } finally {
     activeController = null;
     isSending = false;
-    $("sendButton").textContent = "↑";
     $("sendButton").disabled = false;
-
+    $("sendButton").textContent = "↑";
     renderChatList();
     renderMessages();
   }
 }
 
-/* AUTHENTICATION */
-function updateAccountUI(){
-  if(currentUser){
-    $("accountName").textContent = currentUser.email || "My account";
-    $("accountStatus").textContent = "Account connected";
-    $("accountAvatar").textContent =
-      (currentUser.email || "U").charAt(0).toUpperCase();
+/* FILE ATTACHMENTS */
+$("attachButton").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", event => {
+  addSelectedFiles(event.target.files);
+  event.target.value = "";
+});
 
-    $("logoutButton").style.display = "block";
-    $("guestButton").style.display = "none";
-  }else{
-    $("accountName").textContent = "Guest mode";
-    $("accountStatus").textContent = "Chats saved on this device";
-    $("accountAvatar").textContent = "G";
+/* GENERATION AND MY CREATIONS: IndexedDB on this browser/device */
+const CREATION_DB = "dripscallion-creations";
+const CREATION_STORE = "images";
 
-    $("logoutButton").style.display = "none";
-    $("guestButton").style.display = "block";
-  }
-}
-
-function showAuthModal(){
-  $("authMessage").textContent = "";
-  $("authModal").classList.add("show");
-}
-
-function closeAuthModal(){
-  $("authModal").classList.remove("show");
-}
-
-async function login(){
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-
-  if(!email || !password){
-    $("authMessage").textContent = "Enter your email and password.";
-    return;
-  }
-
-  $("authMessage").textContent = "Logging in...";
-
-  const {error} = await supabaseClient.auth.signInWithPassword({
-    email,password
+function openCreationDB() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) return reject(new Error("This browser does not support local image storage."));
+    const request = indexedDB.open(CREATION_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(CREATION_STORE)) {
+        db.createObjectStore(CREATION_STORE, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Could not open image storage."));
   });
-
-  if(error){
-    $("authMessage").textContent = error.message;
-  }else{
-    closeAuthModal();
-  }
 }
 
-async function signup(){
+async function saveCreation(item) {
+  const db = await openCreationDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(CREATION_STORE, "readwrite");
+    transaction.objectStore(CREATION_STORE).put(item);
+    transaction.oncomplete = () => { db.close(); resolve(true); };
+    transaction.onerror = () => { db.close(); reject(transaction.error || new Error("Could not save image.")); };
+    transaction.onabort = () => { db.close(); reject(transaction.error || new Error("Image save was cancelled.")); };
+  });
+}
+
+async function getCreations() {
+  const db = await openCreationDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(CREATION_STORE, "readonly");
+    const request = transaction.objectStore(CREATION_STORE).getAll();
+    request.onsuccess = () => { const items = request.result || []; items.sort((a,b) => b.createdAt - a.createdAt); db.close(); resolve(items); };
+    request.onerror = () => { db.close(); reject(request.error); };
+  });
+}
+
+async function deleteCreation(id) {
+  const db = await openCreationDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(CREATION_STORE, "readwrite");
+    transaction.objectStore(CREATION_STORE).delete(id);
+    transaction.oncomplete = () => { db.close(); resolve(); };
+    transaction.onerror = () => { db.close(); reject(transaction.error); };
+  });
+}
+
+function openModal(id) { $(id).classList.add("show"); }
+function closeModal(id) { $(id).classList.remove("show"); }
+
+document.querySelectorAll("[data-close]").forEach(button => {
+  button.addEventListener("click", () => closeModal(button.dataset.close));
+});
+document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+  backdrop.addEventListener("click", event => {
+    if (event.target === backdrop) backdrop.classList.remove("show");
+  });
+});
+
+$("imageToolButton").addEventListener("click", () => {
+  $("imagePrompt").value = "";
+  $("imageStatus").textContent = "";
+  $("imageResult").style.display = "none";
+  openModal("imageModal");
+  $("imagePrompt").focus();
+});
+
+function downloadDataURL(dataUrl, filename) {
+  const anchor = document.createElement("a");
+  anchor.href = dataUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+async function generateImage() {
+  const prompt = $("imagePrompt").value.trim();
+  if (!prompt) {
+    $("imageStatus").textContent = "Describe the image first.";
+    return;
+  }
+  const button = $("generateImageButton");
+  button.disabled = true;
+  button.textContent = "Generating...";
+  $("imageStatus").textContent = "FLUX is creating your image. This may take a moment...";
+  $("imageResult").style.display = "none";
+
+  try {
+    const data = await postJSON("/api/image", { prompt, steps: 8 });
+    const image = data.image || data.dataURI;
+    if (!image || !String(image).startsWith("data:image/")) {
+      throw new Error("The image service did not return a displayable image.");
+    }
+    $("generatedImage").src = image;
+    $("downloadImage").href = image;
+    $("imageResult").style.display = "block";
+    const filename = `dripscallion-${Date.now()}.jpg`;
+    $("downloadImage").download = filename;
+
+    try {
+      await saveCreation({
+        id: makeId(),
+        ownerId: currentUser?.id || "guest",
+        prompt,
+        image,
+        filename,
+        createdAt: Date.now()
+      });
+      $("imageStatus").textContent = "Image created and saved in My Creations on this device.";
+    } catch (storageError) {
+      console.warn("Image was created but local saving failed:", storageError);
+      $("imageStatus").textContent = "Image created. Download it now; local browser storage was unavailable.";
+    }
+  } catch (error) {
+    console.error("Image generation failed:", error);
+    $("imageStatus").textContent = "Image generation failed: " + error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Generate image";
+  }
+}
+$("generateImageButton").addEventListener("click", generateImage);
+
+async function renderCreations() {
+  const grid = $("creationGrid");
+  grid.innerHTML = "";
+  $("creationsStatus").textContent = "Loading saved images...";
+  try {
+    const allItems = await getCreations();
+    const ownerId = currentUser?.id || "guest";
+    const items = allItems.filter(item => item.ownerId === ownerId);
+    if (!items.length) {
+      $("creationsStatus").textContent = "No saved images yet. Create an image to see it here.";
+      return;
+    }
+    $("creationsStatus").textContent = `${items.length} image(s) saved on this device.`;
+    items.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "creation-card";
+      const img = document.createElement("img");
+      img.src = item.image;
+      img.alt = item.prompt || "Created image";
+      const caption = document.createElement("p");
+      caption.textContent = item.prompt || "AI image";
+      const download = document.createElement("button");
+      download.textContent = "Download";
+      download.onclick = () => downloadDataURL(item.image, item.filename || "dripscallion-image.jpg");
+      const remove = document.createElement("button");
+      remove.textContent = "Delete";
+      remove.onclick = async () => {
+        if (!confirm("Delete this saved image from this device?")) return;
+        try { await deleteCreation(item.id); await renderCreations(); }
+        catch (error) { alert("Could not delete image: " + error.message); }
+      };
+      card.append(img, caption, download, remove);
+      grid.appendChild(card);
+    });
+  } catch (error) {
+    $("creationsStatus").textContent = "Could not load local creations: " + error.message;
+  }
+}
+$("creationsButton").addEventListener("click", async () => {
+  openModal("creationsModal");
+  await renderCreations();
+});
+
+/* STUDY PDF CREATOR */
+$("pdfToolButton").addEventListener("click", () => {
+  $("pdfPrompt").value = "";
+  $("pdfStatus").textContent = "";
+  $("pdfPreview").style.display = "none";
+  openModal("pdfModal");
+  $("pdfPrompt").focus();
+});
+
+function markdownToPDF(markdown, title) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error("PDF library did not load. Check your internet connection and refresh.");
+  }
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+  let y = 20;
+
+  pdf.setProperties({ title, subject: "DRIPSCALLION AI study material", creator: "DRIPSCALLION AI" });
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(17);
+  const titleLines = pdf.splitTextToSize(title, maxWidth);
+  pdf.text(titleLines, margin, y);
+  y += titleLines.length * 8 + 5;
+
+  const clean = String(markdown || "")
+    .replace(/```[\s\S]*?```/g, match => match.replace(/```/g, ""))
+    .replace(/\r/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1");
+
+  const lines = clean.split("\n");
+  for (const sourceLine of lines) {
+    const raw = sourceLine.trimEnd();
+    if (!raw.trim()) { y += 3; continue; }
+    let line = raw.trim();
+    let fontSize = 10;
+    let fontStyle = "normal";
+    if (/^#{1,2}\s/.test(line)) {
+      line = line.replace(/^#{1,2}\s+/, "");
+      fontSize = 13;
+      fontStyle = "bold";
+      y += 2;
+    } else if (/^#{3,6}\s/.test(line)) {
+      line = line.replace(/^#{3,6}\s+/, "");
+      fontSize = 11;
+      fontStyle = "bold";
+    } else if (/^[-*+]\s/.test(line)) {
+      line = "- " + line.replace(/^[-*+]\s+/, "");
+    } else if (/^\d+[.)]\s/.test(line)) {
+      fontStyle = "normal";
+    }
+    pdf.setFont("helvetica", fontStyle);
+    pdf.setFontSize(fontSize);
+    const wrapped = pdf.splitTextToSize(line, maxWidth);
+    const lineHeight = fontSize * 0.48;
+    for (const wrappedLine of wrapped) {
+      if (y + lineHeight > pageHeight - margin) {
+        pdf.addPage();
+        y = margin;
+      }
+      pdf.text(wrappedLine, margin, y);
+      y += lineHeight;
+    }
+    y += 2;
+  }
+  const totalPages = pdf.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page++) {
+    pdf.setPage(page);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8);
+    pdf.text(`DRIPSCALLION AI  |  Page ${page} of ${totalPages}`, pageWidth - margin, pageHeight - 9, { align: "right" });
+  }
+  pdf.save(`${String(title).replace(/[^a-z0-9-_ ]/gi, "").trim().replace(/\s+/g, "-") || "dripscallion-study-notes"}.pdf`);
+}
+
+async function createStudyPDF() {
+  const prompt = $("pdfPrompt").value.trim();
+  if (!prompt) {
+    $("pdfStatus").textContent = "Describe the subject, level and material you need.";
+    return;
+  }
+  const button = $("createPdfButton");
+  button.disabled = true;
+  button.textContent = "Creating...";
+  $("pdfStatus").textContent = "Preparing study material...";
+  $("pdfPreview").style.display = "none";
+  try {
+    const data = await postJSON("/api/pdf/content", { prompt });
+    const content = data.content || data.markdown;
+    if (!content) throw new Error("The study-content service returned empty content.");
+    const title = data.title || "DRIPSCALLION AI Study Material";
+    $("pdfPreview").textContent = content;
+    $("pdfPreview").style.display = "block";
+    markdownToPDF(content, title);
+    $("pdfStatus").textContent = "Study PDF created and downloaded. Review the preview above.";
+  } catch (error) {
+    console.error("PDF creation failed:", error);
+    $("pdfStatus").textContent = "PDF creation failed: " + error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "Create and download PDF";
+  }
+}
+$("createPdfButton").addEventListener("click", createStudyPDF);
+
+/* ACCOUNT MODAL AND AUTH ACTIONS */
+function showAuthModal() {
+  $("authMessage").textContent = "";
+  openModal("authModal");
+}
+function closeAuthModal() { closeModal("authModal"); }
+
+async function login() {
   const email = $("authEmail").value.trim();
   const password = $("authPassword").value;
-
-  if(!email || !password){
+  if (!email || !password) {
     $("authMessage").textContent = "Enter your email and password.";
     return;
   }
+  $("authMessage").textContent = "Logging in...";
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) $("authMessage").textContent = error.message;
+  else closeAuthModal();
+}
 
-  if(password.length < 6){
-    $("authMessage").textContent =
-      "Password must be at least 6 characters.";
+async function signup() {
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+  if (!email || !password) {
+    $("authMessage").textContent = "Enter your email and password.";
     return;
   }
-
+  if (password.length < 6) {
+    $("authMessage").textContent = "Password must be at least 6 characters.";
+    return;
+  }
   $("authMessage").textContent = "Creating account...";
-
-  const {error} = await supabaseClient.auth.signUp({
+  const { error } = await supabaseClient.auth.signUp({
     email,
     password,
-    options:{
-      emailRedirectTo:window.location.origin
-    }
+    options: { emailRedirectTo: window.location.origin }
   });
-
-  if(error){
-    $("authMessage").textContent = error.message;
-  }else{
-    $("authMessage").textContent =
-      "Account created. Check your email if confirmation is required.";
-  }
+  $("authMessage").textContent = error
+    ? error.message
+    : "Account created. Check your email if confirmation is required.";
 }
 
-async function logout(){
-  const {error} = await supabaseClient.auth.signOut();
-
-  if(error){
-    $("authMessage").textContent = error.message;
-    return;
-  }
-
-  closeAuthModal();
+async function logout() {
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) $("authMessage").textContent = error.message;
+  else closeAuthModal();
 }
 
-/* SEARCH: PREVENT EMAIL AUTOFILL */
+/* SEARCH AUTOFILL PROTECTION */
 const searchInput = $("chatSearch");
-
-searchInput.addEventListener("focus",() => {
-  searchInput.removeAttribute("readonly");
+searchInput.addEventListener("focus", () => searchInput.removeAttribute("readonly"));
+searchInput.addEventListener("input", renderChatList);
+searchInput.addEventListener("blur", () => {
+  if (!searchInput.value) searchInput.setAttribute("readonly", "readonly");
 });
 
-searchInput.addEventListener("input",renderChatList);
-
-searchInput.addEventListener("blur",() => {
-  if(!searchInput.value){
-    searchInput.setAttribute("readonly","readonly");
-  }
-});
-
-/* EVENTS */
+/* GENERAL EVENTS */
 $("newChatButton").onclick = newChat;
 $("sendButton").onclick = sendMessage;
-$("menuButton").onclick = () =>
-  $("sidebar").classList.toggle("open");
-
+$("menuButton").onclick = () => $("sidebar").classList.toggle("open");
 $("accountButton").onclick = showAuthModal;
-$("closeModal").onclick = closeAuthModal;
+$("closeAuthModal").onclick = closeAuthModal;
 $("loginButton").onclick = login;
 $("signupButton").onclick = signup;
 $("logoutButton").onclick = logout;
 
-$("guestButton").onclick = () => {
+$("guestButton").onclick = async () => {
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    $("authMessage").textContent = error.message;
+    return;
+  }
   closeAuthModal();
-  currentUser = null;
-  isGuest = true;
-
-  loadGuestChats();
-  currentChatId = chats[0]?.id || null;
-
-  updateAccountUI();
-  renderChatList();
-  renderMessages();
 };
 
-$("messageInput").addEventListener("keydown",event => {
-  if(event.key === "Enter" && !event.shiftKey){
+$("messageInput").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     sendMessage();
   }
 });
-
-$("messageInput").addEventListener("input",event => {
+$("messageInput").addEventListener("input", event => {
   event.target.style.height = "auto";
-  event.target.style.height =
-    Math.min(event.target.scrollHeight,180) + "px";
+  event.target.style.height = Math.min(event.target.scrollHeight, 180) + "px";
 });
-
-$("messages").addEventListener("click",event => {
+$("messages").addEventListener("click", event => {
   const button = event.target.closest("[data-prompt]");
-
-  if(button){
+  if (button) {
     $("messageInput").value = button.dataset.prompt;
     $("messageInput").focus();
   }
 });
-
-/* STOP GENERATION WITH RIGHT CLICK */
-$("sendButton").addEventListener("contextmenu",event => {
+$("sendButton").addEventListener("contextmenu", event => {
   event.preventDefault();
-
-  if(activeController){
-    activeController.abort();
-  }
+  if (activeController) activeController.abort();
 });
 
-/* AUTH SESSION CHANGES
-   Database work is scheduled outside the auth callback.
-   This avoids holding Supabase's auth lock during chat queries.
-*/
-supabaseClient.auth.onAuthStateChange((event,session) => {
-  const nextUser = session?.user || null;
-  const previousUserId = currentUser?.id || null;
-  const nextUserId = nextUser?.id || null;
-
-  currentUser = nextUser;
-  isGuest = !nextUser;
-
-  updateAccountUI();
-
-  if(previousUserId !== nextUserId){
-    setTimeout(async () => {
-      if((currentUser?.id || null) !== nextUserId) return;
-
-      if(nextUserId){
-        await loadUserChats();
-      }else{
-        loadGuestChats();
-        currentChatId = chats[0]?.id || null;
-        renderChatList();
-        renderMessages();
-      }
-    },0);
-  }
+/* SESSION INITIALISATION: preserve Supabase's existing auth session */
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  // Defer Supabase queries outside the auth callback to avoid auth-lock issues.
+  setTimeout(() => applySession(session?.user || null), 0);
 });
 
-/* START APP */
-async function startApp(){
-  try{
-    const {data,error} = await supabaseClient.auth.getSession();
-
-    if(error){
-      console.error("Session check failed:",error);
-    }
-
-    currentUser = data?.session?.user || null;
-    isGuest = !currentUser;
-
-    updateAccountUI();
-
-    if(currentUser){
-      await loadUserChats();
-    }else{
-      loadGuestChats();
-      currentChatId = chats[0]?.id || null;
-      renderChatList();
-      renderMessages();
-    }
-
-  }catch(error){
-    console.error("App startup failed:",error);
-    setSaveStatus("Could not load account data");
+async function startApp() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    await applySession(data?.session?.user || null);
+  } catch (error) {
+    console.error("Could not restore account session:", error);
+    currentUser = null;
+    isGuest = true;
+    loadedIdentity = null;
     loadGuestChats();
     currentChatId = chats[0]?.id || null;
+    updateAccountUI();
+    setSaveStatus("Could not restore login session. Please log in again.", true);
     renderChatList();
     renderMessages();
   }
@@ -1162,11 +1125,11 @@ async function startApp(){
 startApp();
 
 /* SERVICE WORKER */
-if("serviceWorker" in navigator){
-  window.addEventListener("load",() => {
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js")
       .then(() => console.log("DRIPSCALLION AI service worker ready"))
-      .catch(error => console.error("Service worker error:",error));
+      .catch(error => console.error("Service worker registration failed:", error));
   });
 }
 </script>
