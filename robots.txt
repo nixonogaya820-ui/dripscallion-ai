@@ -1,0 +1,5 @@
+
+User-agent: *
+Allow: /
+
+Sitemap: https://dripscallion-ai.nixonogaya820.workers.dev/sitemap.xml
