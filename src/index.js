@@ -1,7 +1,7 @@
 
 const CHAT_MODEL = "@cf/google/gemma-4-26b-a4b-it";
 const IMAGE_MODEL = "@cf/black-forest-labs/flux-1-schnell";
-const IMAGE_EDIT_MODEL = "black-forest-labs/flux-1-kontext-pro";
+const IMAGE_EDIT_MODEL = "@cf/black-forest-labs/flux-2-klein-4b";
 const SPEECH_MODEL = "@cf/openai/whisper-large-v3-turbo";
 const VOICE_MODEL = "@cf/deepgram/aura-2-en";
 
@@ -29,7 +29,7 @@ PERSONALITY:
 
 CODING:
 - Put source code inside properly labelled code blocks.
-- Provide Copy-ready code.
+- Provide copy-ready code.
 - Provide complete replacement files when requested.
 - Explain errors clearly.
 
@@ -42,6 +42,8 @@ EDUCATION:
 CREATIVITY:
 - Support image prompts, image understanding and image editing.
 - Follow the user's visual instructions carefully.
+- When editing a supplied photo, try to preserve the original subject, face, skin tone, hairstyle, body proportions, pose and composition unless the user asks for a change.
+- Do not promise perfect identity preservation.
 - Never claim an image was created or edited unless the image service succeeds.
 
 Always be accurate and honest about limitations.
@@ -200,43 +202,6 @@ function isValidImageData(value) {
   }
 }
 
-async function getEditedImageDataUrl(value) {
-  if (typeof value !== "string" || !value.trim()) {
-    throw new Error("The image editor returned no image.");
-  }
-
-  if (value.startsWith("data:image/")) {
-    return value;
-  }
-
-  if (!/^https:\/\//i.test(value)) {
-    return imageToDataUrl(value);
-  }
-
-  // Fetch the image URL returned by the trusted image model.
-  const response = await fetch(value);
-
-  if (!response.ok) {
-    throw new Error("Could not retrieve the edited image.");
-  }
-
-  const contentType = (
-    response.headers.get("Content-Type") || ""
-  ).split(";")[0].toLowerCase();
-
-  if (!contentType.startsWith("image/")) {
-    throw new Error("The image service returned an invalid file.");
-  }
-
-  const bytes = new Uint8Array(await response.arrayBuffer());
-
-  if (bytes.byteLength > 8 * 1024 * 1024) {
-    throw new Error("The edited image is too large.");
-  }
-
-  return `data:${contentType};base64,${bytesToBase64(bytes)}`;
-}
-
 function getAllowedDocumentExtensions() {
   return [
     ".pdf",
@@ -260,6 +225,16 @@ function decodeText(bytes) {
   return new TextDecoder("utf-8", {
     fatal: false
   }).decode(bytes).trim();
+}
+
+function normalizeImageMimeType(mimeType) {
+  const value = String(mimeType || "").toLowerCase();
+
+  if (value === "image/jpg") {
+    return "image/jpeg";
+  }
+
+  return value;
 }
 
 export default {
@@ -310,10 +285,13 @@ export default {
           imageUnderstanding: true,
           documentReading: true,
           studyContentGeneration: true,
-          imageEditing: env.ENABLE_PAID_IMAGE_EDITING === "true",
+          imageEditing: true,
+          imageEditingModel: IMAGE_EDIT_MODEL,
+          paidImageEditing: false,
           speechToText: true,
           textToSpeech: true,
-          videoGeneration: false
+          videoGeneration: false,
+          webSearch: false
         }
       }, 200, cors);
     }
@@ -489,17 +467,8 @@ export default {
         }, 200, cors);
       }
 
-      // 3. IMAGE EDITING
+      // 3. IMAGE EDITING - FLUX.2 KLEIN 4B
       if (url.pathname === "/api/image/edit") {
-
-        // Keep the paid model switched off until explicitly enabled
-        // in the Cloudflare Worker environment.
-        if (env.ENABLE_PAID_IMAGE_EDITING !== "true") {
-          return jsonResponse({
-            error: "Image editing is temporarily disabled. The owner must enable the paid image-editing service first."
-          }, 403, cors);
-        }
-
         const prompt =
           typeof body.prompt === "string"
             ? body.prompt.trim()
@@ -533,25 +502,61 @@ export default {
           MAX_IMAGE_BYTES
         );
 
-        // Kontext Pro expects a base64 image string or image URL,
-        // not the complete data:image/... prefix.
-        const result = await env.AI.run(IMAGE_EDIT_MODEL, {
-          prompt,
-          input_image: decoded.base64,
-          output_format: "jpeg"
-        });
+        const mimeType = normalizeImageMimeType(
+          decoded.mimeType
+        );
 
-        const imageValue =
-          result?.image ||
-          result?.result?.image ||
-          result?.output?.image;
+        if (
+          !["image/jpeg", "image/png", "image/webp"].includes(mimeType)
+        ) {
+          return jsonResponse({
+            error: "Use a JPEG, PNG or WebP image."
+          }, 415, cors);
+        }
 
-        const image = await getEditedImageDataUrl(imageValue);
+        // FLUX.2 Klein 4B requires multipart form data.
+        // Reference images must be smaller than 512 x 512 pixels.
+        // The frontend image-resizing step will be added next.
+        const form = new FormData();
+
+        form.append("prompt", prompt);
+
+        form.append(
+          "input_image_0",
+          new Blob([decoded.bytes], {
+            type: mimeType
+          }),
+          "reference-image"
+        );
+
+        form.append("width", "1024");
+        form.append("height", "1024");
+
+        const formResponse = new Response(form);
+
+        const result = await env.AI.run(
+          IMAGE_EDIT_MODEL,
+          {
+            multipart: {
+              body: formResponse.body,
+              contentType: formResponse.headers.get("content-type")
+            }
+          }
+        );
+
+        if (!result?.image) {
+          return jsonResponse({
+            error: "The image editor returned no image."
+          }, 502, cors);
+        }
+
+        const image = imageToDataUrl(result.image);
 
         return jsonResponse({
           image,
           dataURI: image,
-          assistant: "DRIPSCALLION AI"
+          assistant: "DRIPSCALLION AI",
+          model: IMAGE_EDIT_MODEL
         }, 200, cors);
       }
 
@@ -651,8 +656,7 @@ export default {
 
         const bytes = decoded.bytes;
 
-        // Read plain text directly. These formats do not need
-        // the document conversion service.
+        // Read plain text directly.
         if ([".txt", ".md"].includes(extension)) {
           const text = decodeText(bytes);
 
@@ -686,7 +690,6 @@ export default {
           type: decoded.mimeType
         });
 
-        // Cloudflare accepts either one document object or an array.
         const conversion = await env.AI.toMarkdown({
           name,
           blob
@@ -725,8 +728,6 @@ export default {
       }
 
       // 6. EDUCATIONAL PDF CONTENT
-      // This endpoint creates document content. The website
-      // converts the returned Markdown into a downloadable PDF.
       if (url.pathname === "/api/pdf/content") {
         const prompt =
           typeof body.prompt === "string"
@@ -882,6 +883,7 @@ Return clean Markdown suitable for PDF formatting.
       }
 
       // VIDEO GENERATION IS INTENTIONALLY NOT INCLUDED.
+      // WEB SEARCH WILL BE ADDED AFTER A SAFE FREE PROVIDER IS VERIFIED.
       return jsonResponse({
         error: "Route not found."
       }, 404, cors);
