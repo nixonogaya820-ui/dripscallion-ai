@@ -100,11 +100,11 @@
     <footer class="composer-area">
       <div class="quick-tools" id="plusMenu" role="menu" aria-label="Add to chat">
         <div class="tools-menu-heading">Add to your chat</div>
-        <button class="tool-button" id="attachButton" type="button"><span class="tool-icon">＋</span><span><strong>Photos & files</strong><small>Upload images or documents</small></span></button>
+        <button class="tool-button" id="attachButton" type="button"><span class="tool-icon">＋</span><span><strong>Import File</strong><small>Add a photo or document to your chat</small></span></button>
         <div class="tools-menu-divider"></div>
         <div class="tools-menu-label">CREATE</div>
         <button class="tool-button" id="imageToolButton" type="button"><span class="tool-icon">▧</span><span><strong>Create an image</strong><small>Generate an image from a prompt</small></span></button>
-        <button class="tool-button" id="editPhotoButton" type="button"><span class="tool-icon">✎</span><span><strong>Photo Studio</strong><small>Edit a photo with your instructions</small></span></button>
+        <button class="tool-button" id="editPhotoButton" type="button"><span class="tool-icon">✎</span><span><strong>Create Photo</strong><small>Create or edit a photo with AI</small></span></button>
         <button class="tool-button" id="pdfToolButton" type="button"><span class="tool-icon">▤</span><span><strong>Study PDF</strong><small>Create a study document</small></span></button>
         <div class="tools-menu-divider"></div>
         <button class="tool-button" id="creationsButton" type="button"><span class="tool-icon">▣</span><span><strong>My creations</strong><small>View and download saved images</small></span></button>
@@ -128,7 +128,7 @@
 <div class="modal-backdrop" id="editPhotoModal">
   <div class="modal">
     <div class="modal-close-row">
-      <h2>AI Photo Studio</h2>
+      <h2>Create Photo</h2>
       <button class="modal-close" data-close="editPhotoModal" aria-label="Close">×</button>
     </div>
     <p>Upload a photo, choose a look or describe your own edit. You control the result.</p>
@@ -1224,10 +1224,10 @@ async function editPhoto() {
 
   const finalPrompt = buildPhotoEditingPrompt();
   const originalPreview = await fileToDataURL(file);
-  const photoChat = ensureCurrentChat("Photo Studio");
+  const photoChat = ensureCurrentChat("Create Photo");
   photoChat.messages.push({
     role: "user",
-    content: "Please edit this photo using my selected Photo Studio settings.",
+    content: "Please edit this photo using my selected Create Photo settings.",
     attachments: [{ name: file.name, type: "Photo to edit", image: originalPreview }]
   });
   renderChatList();
