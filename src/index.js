@@ -54,6 +54,42 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
 const MAX_PROMPT_LENGTH = 16000;
 
+// Strong editing instructions for uploaded photographs.
+// These instructions do not guarantee perfect identity preservation.
+const PHOTO_IDENTITY_INSTRUCTIONS = `
+EDIT THE PROVIDED REFERENCE PHOTOGRAPH.
+
+Preserve the identity of the original person as closely as the model allows.
+The person must remain recognizably the same individual.
+
+IDENTITY PRESERVATION:
+- Keep the original face and facial identity.
+- Do not redesign or replace the person's face.
+- Preserve the original eyes, eyebrows, nose, lips, jawline and facial structure.
+- Preserve the original skin tone and natural facial proportions.
+- Preserve hairstyle, hairline and age appearance.
+- Do not apply face swapping or a different person's facial features.
+- Do not make the person look like a different individual.
+
+NATURAL PHOTO QUALITY:
+- Retain realistic skin texture and natural pores.
+- Avoid plastic, waxy, artificial or excessively smooth skin.
+- Avoid excessive beauty filters and artificial sharpening.
+- Keep natural lighting, realistic shadows and balanced colors.
+- Keep the original photographic appearance.
+
+PRESERVE THE ORIGINAL:
+- Keep the original pose, body proportions and clothing unless the user requests a change.
+- Keep the original camera composition and background unless the user requests a change.
+- Do not add people or unnecessary objects.
+- Do not make unrequested changes.
+
+EDIT ONLY WHAT THE USER REQUESTS.
+If the user requests a background change, change the background while keeping the original person as consistent as possible.
+If the user requests clothing changes, change the clothing without redesigning the person's face.
+If the user requests skin improvement, make only subtle, realistic improvements while retaining natural skin texture.
+`;
+
 function jsonResponse(data, status, cors) {
   return new Response(JSON.stringify(data), {
     status,
@@ -242,7 +278,6 @@ export default {
     const url = new URL(request.url);
     const requestOrigin = request.headers.get("Origin");
 
-    // This API is intended to be called from the DRIPSCALLION AI website.
     const originIsAllowed =
       !requestOrigin || requestOrigin === url.origin;
 
@@ -469,7 +504,7 @@ export default {
 
       // 3. IMAGE EDITING - FLUX.2 KLEIN 4B
       if (url.pathname === "/api/image/edit") {
-        const prompt =
+        const userPrompt =
           typeof body.prompt === "string"
             ? body.prompt.trim()
             : "";
@@ -479,13 +514,13 @@ export default {
           body.inputImage ||
           body.fileData;
 
-        if (!prompt) {
+        if (!userPrompt) {
           return jsonResponse({
             error: "Describe the image changes you want."
           }, 400, cors);
         }
 
-        if (prompt.length > 2000) {
+        if (userPrompt.length > 2000) {
           return jsonResponse({
             error: "Editing instructions are too long."
           }, 413, cors);
@@ -514,12 +549,22 @@ export default {
           }, 415, cors);
         }
 
-        // FLUX.2 Klein 4B requires multipart form data.
-        // Reference images must be smaller than 512 x 512 pixels.
-        // The frontend image-resizing step will be added next.
+        // Identity-preserving instructions are placed before
+        // the user's requested changes.
+        const finalPrompt = `
+${PHOTO_IDENTITY_INSTRUCTIONS}
+
+USER'S REQUESTED EDIT:
+${userPrompt}
+
+Follow the requested edit while preserving the original person's identity
+and the rest of the photograph as closely as possible.
+Do not invent additional changes.
+`;
+
         const form = new FormData();
 
-        form.append("prompt", prompt);
+        form.append("prompt", finalPrompt);
 
         form.append(
           "input_image_0",
@@ -529,6 +574,8 @@ export default {
           "reference-image"
         );
 
+        // Output dimensions. Reference input must be below 512x512.
+        // The frontend must resize the reference image before upload.
         form.append("width", "1024");
         form.append("height", "1024");
 
@@ -656,7 +703,6 @@ export default {
 
         const bytes = decoded.bytes;
 
-        // Read plain text directly.
         if ([".txt", ".md"].includes(extension)) {
           const text = decodeText(bytes);
 
@@ -882,8 +928,6 @@ Return clean Markdown suitable for PDF formatting.
         });
       }
 
-      // VIDEO GENERATION IS INTENTIONALLY NOT INCLUDED.
-      // WEB SEARCH WILL BE ADDED AFTER A SAFE FREE PROVIDER IS VERIFIED.
       return jsonResponse({
         error: "Route not found."
       }, 404, cors);
